@@ -2,6 +2,16 @@ import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLe
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
+export class LoginDto {
+    @ApiProperty({ example: 'user@example.com' })
+    @IsString()
+    email: string;
+
+    @ApiProperty({ example: 'Admin123456' })
+    @IsString()
+    password: string;
+}
+
 export class RegisterDto {
     @ApiProperty({ example: 'user@example.com' })
     @IsEmail({}, { message: 'Invalid email address' })

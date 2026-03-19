@@ -4,6 +4,7 @@ import { ConfigSchema } from "./config/config.schema";
 import { AppConfig } from "./config/app-config.service";
 import { HealthModule } from "./health/health.module";
 import { AuthModule } from "./auth/auth.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
     imports: [
@@ -12,6 +13,7 @@ import { AuthModule } from "./auth/auth.module";
             validate: (env) => ConfigSchema.parse(env),
         }),
         HealthModule, AuthModule,
+        ScheduleModule.forRoot(),
     ],
     providers: [AppConfig],
     exports: [AppConfig],

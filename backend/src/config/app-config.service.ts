@@ -29,4 +29,20 @@ export class AppConfig {
     get RATE_LIMIT_TTL(): number {
         return this.configService.getOrThrow<number>('RATE_LIMIT_TTL');
     }
+
+    get JWT_SECRET(): string {
+        return this.configService.getOrThrow<string>('JWT_SECRET');
+    }
+
+    get JWT_EXPIRATION(): string {
+        return this.configService.getOrThrow<string>('JWT_EXPIRATION');
+    }
+
+    get JWT_REFRESH_SECRET(): string {
+        return this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+    }
+
+    get JWT_REFRESH_EXPIRATION(): string {
+        return this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRATION');
+    }
 }

@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { RegisterDto } from "./dto/register.dto";
+import { RegisterDto } from "./dto/request.dto";
 
 export function mapDtoToUser(dto: RegisterDto, hashedPassword: string): Prisma.UserCreateInput {
     return {

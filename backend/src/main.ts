@@ -39,6 +39,7 @@ async function bootstrap() {
             .setDescription('API Documentation for Smart Task Manager')
             .setVersion('1.0')
             .addBearerAuth()
+            .addCookieAuth('refresh_token')
             .build();
         const document = SwaggerModule.createDocument(app, config);
         SwaggerModule.setup('api/docs', app, document);
