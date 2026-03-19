@@ -18,9 +18,10 @@ export class SessionRepository {
         })
     }
 
-    async findByRefreshToken(refreshToken: string): Promise<Session | null> {
+    async findByRefreshToken(refreshToken: string, options: SessionQueryOptions): Promise<Session | null> {
         return this.prisma.session.findUnique({
             where: { refreshToken },
+            ...options,
         });
     }
 

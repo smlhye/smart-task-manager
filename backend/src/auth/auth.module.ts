@@ -8,10 +8,11 @@ import { JwtService } from "@nestjs/jwt";
 import { AppConfig } from "src/config/app-config.service";
 import { SessionRepository } from "./repositories/session.repository";
 import { SessionCleanupService } from "./services/session-cleanup.service";
+import { JwtStrategy } from "./strategies/jwt.strategy";
 
 @Module({
     imports: [PrismaModule],
-    providers: [AuthService, AuthRepository, JwtService, TokenService, AppConfig, SessionRepository, SessionCleanupService],
+    providers: [AuthService, AuthRepository, JwtService, TokenService, AppConfig, SessionRepository, SessionCleanupService, JwtStrategy],
     controllers: [AuthController],
     exports: [AuthService],
 })

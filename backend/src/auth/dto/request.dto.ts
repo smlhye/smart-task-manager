@@ -1,4 +1,4 @@
-import { IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
+import { IsBoolean, IsDate, IsDateString, IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, MinLength } from "class-validator";
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
@@ -62,4 +62,51 @@ export class RegisterDto {
     @IsOptional()
     @IsDateString({}, { message: 'Date of birth must be a valid ISO date string' })
     dateOfBirth?: string;
+}
+
+export class UserResponseDto {
+    @ApiProperty({
+        example: 1,
+    })
+    id: number;
+
+    @ApiProperty({
+        example: 'user@example.com',
+    })
+    email: string;
+
+    @ApiProperty({
+        example: 'Trần',
+    })
+    firstName: string;
+
+    @ApiProperty({
+        example: 'Văn Bánh',
+    })
+    lastName: string;
+
+    @ApiPropertyOptional({
+        example: '+84912345678',
+    })
+    phone?: string;
+
+    @ApiPropertyOptional({
+        example: '1995-01-01T00:00:00.000Z',
+    })
+    dateOfBirth?: string;
+
+    @ApiProperty({
+        example: true,
+    })
+    isActive: boolean;
+
+    @ApiProperty({
+        example: '2024-01-01T10:00:00.000Z',
+    })
+    createdAt: string;
+
+    @ApiProperty({
+        example: 'http://localhost:3000/avatar.jpg',
+    })
+    avatarUrl?: string;
 }

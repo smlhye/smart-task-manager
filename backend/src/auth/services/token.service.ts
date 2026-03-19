@@ -37,4 +37,16 @@ export class TokenService {
     getRefreshTokenExpiresIn(): number {
         return parseToSeconds(this.config.JWT_REFRESH_EXPIRATION as StringValue);
     }
+
+    verifyAccessToken(token: string): any {
+        return this.jwt.verify(token, {
+            secret: this.config.JWT_SECRET,
+        });
+    }
+
+    verifyRefreshToken(token: string): any {
+        return this.jwt.verify(token, {
+            secret: this.config.JWT_REFRESH_SECRET,
+        });
+    }
 }

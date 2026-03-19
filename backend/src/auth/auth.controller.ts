@@ -1,9 +1,14 @@
-import { Body, Controller, Headers, HttpCode, HttpStatus, Ip, Post, Res } from "@nestjs/common";
+import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Ip, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { AuthService } from "./services/auth.service";
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { LoginResponseClientDto, LoginResponseDto, RegisterUserResponseDto } from "./dto/response.dto";
-import { LoginDto, RegisterDto } from "./dto/request.dto";
-import type { Response } from "express";
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { LoginResponseClientDto, RegisterUserResponseDto } from "./dto/response.dto";
+import { LoginDto, RegisterDto, UserResponseDto } from "./dto/request.dto";
+import type { Request, Response } from "express";
+import { BaseException } from "src/common/errors/base.exception";
+import { ErrorCode } from "src/common/errors/error-codes";
+import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { CurrentUser } from "./decorators/current-user.decorator";
+import type { CurrentUserPayload } from "./strategies/jwt.strategy";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -38,7 +43,7 @@ export class AuthController {
     @ApiResponse({
         status: 200,
         description: 'User successfully logged in',
-        type: LoginResponseDto
+        type: LoginResponseClientDto
     })
     @ApiResponse({
         status: 401,
@@ -63,5 +68,49 @@ export class AuthController {
             accessTokenExpiresIn: result.accessTokenExpiresIn,
             refreshTokenExpiresIn: result.refreshTokenExpiresIn,
         };
+    }
+
+    @Post('refresh')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Refresh access token'
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Access token refreshed successfully',
+        type: LoginResponseClientDto,
+    })
+    @ApiResponse({
+        status: 401,
+        description: 'Invalid or missing refresh token',
+    })
+    async refresh(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+    ): Promise<LoginResponseClientDto> {
+        const refreshToken = req.cookies?.refresh_token;
+
+        if (!refreshToken) {
+            throw new BaseException({
+                code: ErrorCode.AUTH_INVALID_TOKEN,
+                message: 'Missing refresh token',
+                status: HttpStatus.UNAUTHORIZED,
+            })
+        }
+
+        return this.authService.refresh(refreshToken);
+    }
+
+    @Get('me')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get current user' })
+    @ApiResponse({
+        status: 200,
+        type: UserResponseDto,
+    })
+    async getMe(@CurrentUser() user: CurrentUserPayload): Promise<UserResponseDto> {
+        console.log('USER:', user);
+        return this.authService.getMe(user.userId);
     }
 }
