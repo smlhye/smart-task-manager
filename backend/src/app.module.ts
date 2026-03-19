@@ -1,8 +1,9 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { ConfigSchema } from "./config/config.schema";
 import { AppConfig } from "./config/app-config.service";
 import { HealthModule } from "./health/health.module";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
     imports: [
@@ -10,7 +11,7 @@ import { HealthModule } from "./health/health.module";
             isGlobal: true,
             validate: (env) => ConfigSchema.parse(env),
         }),
-        HealthModule,
+        HealthModule, AuthModule,
     ],
     providers: [AppConfig],
     exports: [AppConfig],
