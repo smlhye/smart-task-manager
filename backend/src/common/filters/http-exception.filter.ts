@@ -44,9 +44,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
                 code,
                 message,
             },
-            data,
-            path: request.url,
-            timestamp: new Date().toISOString(),
+            data
         });
     }
 }

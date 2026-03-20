@@ -34,15 +34,27 @@ async function bootstrap() {
     );
 
     if (config.ENABLE_SWAGGER) {
-        const config = new DocumentBuilder()
+        const swaggerConfig = new DocumentBuilder()
             .setTitle('Smart Task Management API')
             .setDescription('API Documentation for Smart Task Manager')
             .setVersion('1.0')
-            .addBearerAuth()
-            .addCookieAuth('refresh_token')
+            .addBearerAuth({
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+            }, 'access_token')
+            .addCookieAuth('refresh_token', {
+                type: 'apiKey',
+                in: 'cookie',
+                name: 'refresh_token',
+            })
             .build();
-        const document = SwaggerModule.createDocument(app, config);
-        SwaggerModule.setup('api/docs', app, document);
+        const document = SwaggerModule.createDocument(app, swaggerConfig);
+        SwaggerModule.setup('api/docs', app, document, {
+            swaggerOptions: {
+                persistAuthorization: true,
+            }
+        });
     }
     app.enableCors({ origin: config.FRONTEND_URL, credentials: true });
 
