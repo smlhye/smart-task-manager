@@ -4,6 +4,7 @@ import { loginResponseSchema, LoginSchemaType } from "../schemas/login.schema";
 import { parseApiResponse } from "@/app/lib/api-parser";
 import { ErrorCode } from "@/app/shared/contants/error-code";
 import { createApiResponseSchema } from "@/app/lib/api-schema";
+import { registerResponseSchema, RegisterSchemaType } from "../schemas/register.schema";
 
 export const authService = {
     refreshApi: async () => {
@@ -34,10 +35,25 @@ export const authService = {
         }
     },
 
+    register: async (data: Omit<RegisterSchemaType, "confirmPassword">) => {
+        try {
+            const res = await http.post("auth/register", data);
+            return parseApiResponse(registerResponseSchema, res.data);
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                if (data.error?.code === ErrorCode.USER_EMAIL_EXISTS) {
+                    throw new Error('Email này đã được sử dụng')
+                }
+            }
+            throw new Error("Không thể kết nối server");
+        }
+    },
+
     logoutApi: async () => {
         try {
-            const res = await http.post("auth/logout");    
-            console.log(res.data.data);        
+            const res = await http.post("auth/logout");
+            console.log(res.data.data);
             return res.data.data;
         } catch (err: any) {
             if (err.response?.data) {

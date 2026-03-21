@@ -9,7 +9,7 @@ export const useLogout = () => {
         mutationFn: authService.logoutApi,
         onSuccess: async (res) => {
             useUserStore.getState().setUser(null);
-            toast.success(res.message);
+            toast.success('Đăng xuất thành công');
             await new Promise((resolve) => setTimeout(resolve, 2000));
             queryClient.clear();
             window.location.href = '/login';

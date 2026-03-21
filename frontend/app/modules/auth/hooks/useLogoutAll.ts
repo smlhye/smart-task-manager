@@ -8,7 +8,7 @@ export const useLogoutAll = () => {
     return useMutation({
         mutationFn: authService.logoutAllApi,
         onSuccess: async (res) => {
-            toast.success(res.message);
+            toast.success('Đăng xuất thành công trên tất cả các thiết bị');
             await new Promise((resolve) => setTimeout(resolve, 2000));
             queryClient.clear();
             window.location.href = '/login';
