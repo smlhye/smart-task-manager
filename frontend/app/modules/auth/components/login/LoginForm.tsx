@@ -40,7 +40,7 @@ export default function LoginForm({ form, onSubmit, loading }: Props) {
                 <div className="flex-1 flex justify-center">
                     <div className="w-full max-w-md space-y-6 p-6 border border-[rgb(var(--color-border))] rounded-lg shadow-sm bg-[rgb(var(--color-card))]">
 
-                        <h2 className="text-2xl font-semibold">Đăng nhập</h2>
+                        <h2 className="text-2xl font-semibold text-center">Đăng nhập</h2>
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 

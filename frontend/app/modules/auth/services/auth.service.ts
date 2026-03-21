@@ -32,5 +32,43 @@ export const authService = {
             }
             throw new Error("Không thể kết nối server");
         }
+    },
+
+    logoutApi: async () => {
+        try {
+            const res = await http.post("auth/logout");    
+            console.log(res.data.data);        
+            return res.data.data;
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                if (data.error?.code === ErrorCode.AUTH_INVALID_TOKEN) {
+                    throw new Error('Đăng xuất không thành công')
+                }
+            }
+            throw new Error("Không thể kết nối server");
+        }
+    },
+
+    logoutAllApi: async () => {
+        try {
+            const res = await http.post("auth/logout/all");
+            return res.data.data;
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                if (data.error?.code === ErrorCode.AUTH_INVALID_TOKEN) {
+                    throw new Error('Đăng xuất không thành công')
+                }
+                if (data.error?.code === ErrorCode.USER_NOT_FOUND) {
+                    throw new Error('Không tìm thấy người dùng này')
+                }
+
+                if (data.error?.code === ErrorCode.USER_INVALID) {
+                    throw new Error('Tài khoản này đã bị khóa')
+                }
+            }
+            throw new Error("Không thể kết nối server");
+        }
     }
 }

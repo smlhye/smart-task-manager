@@ -8,6 +8,8 @@ import { TokenService } from "./token.service";
 import { SessionRepository } from "../repositories/session.repository";
 import { LoginDto, RegisterDto, UserResponseDto } from "../dto/request.dto";
 import { LoginResponseClientDto, LoginResponseDto, RegisterUserResponseDto } from "../dto/response.dto";
+import { RevokedTokenRepository } from "../repositories/revoked-token.repository";
+import { createHash } from "crypto";
 
 @Injectable()
 export class AuthService {
@@ -15,6 +17,7 @@ export class AuthService {
         private readonly authRepo: AuthRepository,
         private readonly tokenService: TokenService,
         private readonly sessionRepo: SessionRepository,
+        private readonly revokedTokenRepo: RevokedTokenRepository
     ) { }
 
     async register(dto: RegisterDto) {
@@ -87,6 +90,15 @@ export class AuthService {
             await this.sessionRepo.revokedById(existingSession.id);
         }
 
+        const expiresInSeconds = this.tokenService.getAccessTokenExpiresIn();
+        const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
+
+        await this.revokedTokenRepo.create(
+            createHash('sha256').update(accessToken).digest('hex'),
+            user.id,
+            expiresAt
+        )
+
         await this.sessionRepo.create({
             user: {
                 connect: { id: user.id }
@@ -105,7 +117,7 @@ export class AuthService {
         })
     }
 
-    async refresh(refreshToken: string): Promise<LoginResponseClientDto> {
+    async refresh(refreshToken: string, accessToken?: string): Promise<LoginResponseClientDto> {
         const session = await this.sessionRepo.findByRefreshToken(refreshToken, {
             select: {
                 id: true,
@@ -137,6 +149,23 @@ export class AuthService {
             email: payload.email,
         })
 
+        const expiresInSeconds = this.tokenService.getAccessTokenExpiresIn();
+        const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
+
+        if (accessToken) {
+            const hashedToken = createHash('sha256').update(accessToken).digest('hex');
+            const hasedTokenExisted = await this.revokedTokenRepo.findByToken(hashedToken);
+            if (hasedTokenExisted) {
+                await this.revokedTokenRepo.revoked(hashedToken);
+            }
+        }
+
+        await this.revokedTokenRepo.create(
+            createHash('sha256').update(newAccessToken).digest('hex'),
+            payload.sub,
+            expiresAt
+        )
+
         return {
             accessToken: newAccessToken,
             accessTokenExpiresIn: this.tokenService.getAccessTokenExpiresIn(),
@@ -158,13 +187,87 @@ export class AuthService {
                 phone: true,
             }
         })
-        if(!user) {
+        if (!user) {
             throw new BaseException({
                 code: ErrorCode.USER_NOT_FOUND,
                 message: 'User not found',
                 status: HttpStatus.NOT_FOUND,
             })
         }
+
+        if (!user.isActive) {
+            throw new BaseException({
+                code: ErrorCode.USER_INVALID,
+                message: 'User is inactive',
+                status: 403,
+            })
+        }
         return mapUserToDto(user);
+    }
+
+    async logoutCurrentDevice(refreshToken?: string, accessToken?: string) {
+        if (!refreshToken) throw new BaseException({
+            code: ErrorCode.AUTH_INVALID_TOKEN,
+            message: 'Refresh token missing',
+            status: 400
+        })
+
+        if (accessToken) {
+            const hashedToken = createHash('sha256').update(accessToken).digest('hex');
+            const hasedTokenExisted = await this.revokedTokenRepo.findByToken(hashedToken);
+            if (hasedTokenExisted) {
+                await this.revokedTokenRepo.revoked(hashedToken);
+            }
+        }
+
+        const token = await this.sessionRepo.findByRefreshToken(refreshToken);
+        if (!token) {
+            throw new BaseException({
+                code: ErrorCode.AUTH_INVALID_TOKEN,
+                message: 'Refresh token not found',
+                status: 404,
+            })
+        }
+        await this.sessionRepo.revokedById(token.id);
+        return { message: 'Logged out from current device successfully' };
+    }
+
+    async logoutMultiDevice(userId: number, refreshToken?: string) {
+        if (!refreshToken) throw new BaseException({
+            code: ErrorCode.AUTH_INVALID_TOKEN,
+            message: 'Refresh token missing',
+            status: 400
+        })
+        const token = await this.sessionRepo.findByRefreshToken(refreshToken);
+        if (!token) {
+            throw new BaseException({
+                code: ErrorCode.AUTH_INVALID_TOKEN,
+                message: 'Refresh token not found',
+                status: 404,
+            })
+        }
+        const user = await this.authRepo.findById(userId, {
+            select: {
+                id: true,
+                isActive: true,
+            }
+        });
+        if (!user) {
+            throw new BaseException({
+                code: ErrorCode.USER_NOT_FOUND,
+                message: 'User not found',
+                status: 404,
+            })
+        }
+        if (!user.isActive) {
+            throw new BaseException({
+                code: ErrorCode.USER_INVALID,
+                message: 'User is inactive',
+                status: 403,
+            })
+        }
+        await this.sessionRepo.revokedByUserId(user.id);
+        await this.revokedTokenRepo.revokedAllByUserId(user.id);
+        return { message: 'Logged out from all devices successfully' };
     }
 }

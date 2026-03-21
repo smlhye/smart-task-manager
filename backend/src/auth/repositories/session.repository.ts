@@ -18,7 +18,7 @@ export class SessionRepository {
         })
     }
 
-    async findByRefreshToken(refreshToken: string, options: SessionQueryOptions): Promise<Session | null> {
+    async findByRefreshToken(refreshToken: string, options?: SessionQueryOptions): Promise<Session | null> {
         return this.prisma.session.findUnique({
             where: { refreshToken },
             ...options,
@@ -68,7 +68,7 @@ export class SessionRepository {
             data: {
                 isRevoked: true,
                 revokedAt: new Date(),
-            }
+            },
         })
     }
 

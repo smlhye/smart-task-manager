@@ -1,6 +1,5 @@
 'use client';
 
-import { useAuthStore } from "@/app/stores/auth.store";
 import { useState } from "react";
 import { loginSchema, LoginSchemaType } from "../schemas/login.schema";
 import { useForm } from "react-hook-form";
@@ -11,7 +10,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 export function useLogin() {
-    const setToken = useAuthStore((s) => s.setAccessToken);
     const [loading, setLoading] = useState<boolean>(false);
     const router = useRouter();
 
@@ -26,7 +24,6 @@ export function useLogin() {
     const loginMutation = useMutation({
         mutationFn: authService.loginApi,
         onSuccess: (res) => {
-            setToken(res.data?.accessToken!);
             toast.success("Đăng nhập thành công");
             form.reset();
             router.push('/');

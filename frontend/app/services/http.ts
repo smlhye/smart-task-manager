@@ -1,34 +1,18 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { useAuthStore } from "../stores/auth.store";
-import { parseApiResponse } from "../lib/api-parser";
-import { refreshSchema } from "../modules/auth/schemas/refresh.schema";
+import axios, { AxiosError } from "axios";
 
 export const http = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     withCredentials: true,
 })
 
-http.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-        const token = useAuthStore.getState().accessToken;
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        return config;
-    },
-    (error) => Promise.reject(error),
-)
-
-
 let isRefreshing = false;
-let pendingRequests: Array<(token: string) => void> = [];
-const resolveQueue = (token: string) => {
-    pendingRequests.forEach((callback) => callback(token));
+let pendingRequests: (() => void)[] = [];
+const resolveQueue = () => {
+    pendingRequests.forEach((callback) => callback());
     pendingRequests = [];
 };
 
-const NO_REFRESH_URLS = ["auth/login", "auth/refresh"];
+const NO_REFRESH_URLS = ["auth/login", "auth/refresh", "auth/logout", "auth/logout/all"];
 
 http.interceptors.response.use(
     (response) => response,
@@ -40,9 +24,8 @@ http.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest._retry && !isNoRefresh) {
             originalRequest._retry = true;
             if (isRefreshing) {
-                return new Promise((resolve) => {
-                    pendingRequests.push((token: string) => {
-                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                return new Promise((resolve, reject) => {
+                    pendingRequests.push(() => {
                         resolve(http(originalRequest));
                     });
                 });
@@ -51,20 +34,17 @@ http.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                const res = await axios.post(
+                await axios.post(
                     `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
                     {},
                     { withCredentials: true }
                 );
 
-                const dataRes = parseApiResponse(refreshSchema, res.data);
-                const accessToken = dataRes.data?.accessToken!;
-                useAuthStore.getState().setAccessToken(accessToken);
-                resolveQueue(accessToken);
-                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                resolveQueue();
+
                 return http(originalRequest);
             } catch (err) {
-                useAuthStore.getState().clear();
+                window.location.href = "/login";
                 return Promise.reject(err);
             } finally {
                 isRefreshing = false;

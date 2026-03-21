@@ -23,6 +23,7 @@ model User {
   tasks         Task[]
   logs          ActivityLog[]
   sessions      Session[]
+  revokedTokens RevokedToken[]
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -119,4 +120,17 @@ enum Priority {
   LOW
   MEDIUM
   HIGH
+}
+
+model RevokedToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  revokedAt DateTime @default(now())
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+
+  @@index([userId])
+  @@index([expiresAt])
 }

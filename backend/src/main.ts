@@ -8,6 +8,7 @@ import hpp from 'hpp';
 import { AppConfig } from "./config/app-config.service";
 import { GlobalExceptionFilter } from "./common/filters/http-exception.filter";
 import { ResponseInterceptor } from "./common/interceptors/response.interceptor";
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -20,6 +21,7 @@ async function bootstrap() {
 
     app.use(helmet());
     app.use(hpp());
+    app.use(cookieParser());
 
     app.useGlobalPipes(
         new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
@@ -43,6 +45,11 @@ async function bootstrap() {
                 scheme: 'bearer',
                 bearerFormat: 'JWT',
             }, 'access_token')
+            .addCookieAuth('access_token', {
+                type: 'apiKey',
+                in: 'cookie',
+                name: 'access_token',
+            })
             .addCookieAuth('refresh_token', {
                 type: 'apiKey',
                 in: 'cookie',

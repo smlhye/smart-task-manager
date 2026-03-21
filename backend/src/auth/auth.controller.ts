@@ -63,6 +63,13 @@ export class AuthController {
             maxAge: result.refreshTokenExpiresIn * 1000,
             path: '/',
         })
+        res.cookie("access_token", result.accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: result.accessTokenExpiresIn * 1000,
+            path: '/',
+        })
         return {
             accessToken: result.accessToken,
             accessTokenExpiresIn: result.accessTokenExpiresIn,
@@ -89,6 +96,7 @@ export class AuthController {
         @Res({ passthrough: true }) res: Response,
     ): Promise<LoginResponseClientDto> {
         const refreshToken = req.cookies?.refresh_token;
+        const accessToken = req.cookies?.access_token;
 
         if (!refreshToken) {
             throw new BaseException({
@@ -97,8 +105,31 @@ export class AuthController {
                 status: HttpStatus.UNAUTHORIZED,
             })
         }
+        try {
+            const result = await this.authService.refresh(refreshToken, accessToken);
 
-        return this.authService.refresh(refreshToken);
+            res.cookie("access_token", result.accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: result.accessTokenExpiresIn * 1000,
+                path: '/',
+            })
+
+            return result;
+        } catch (err: any) {
+            res.clearCookie('refresh_token', {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                path: '/',
+            });
+            throw new BaseException({
+                code: ErrorCode.AUTH_INVALID_TOKEN,
+                message: 'Refresh token invalid or revoked',
+                status: HttpStatus.UNAUTHORIZED,
+            });
+        }
     }
 
     @Get('me')
@@ -112,5 +143,63 @@ export class AuthController {
     async getMe(@CurrentUser() user: CurrentUserPayload): Promise<UserResponseDto> {
         console.log('USER:', user);
         return this.authService.getMe(user.userId);
+    }
+
+    @Post('logout')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Log out user from current device' })
+    @ApiResponse({
+        status: 200
+    })
+    async logout(
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const refreshToken = req.cookies?.refresh_token;
+        const accessToken = req.cookies?.access_token;
+        const data = await this.authService.logoutCurrentDevice(refreshToken, accessToken);
+        res.clearCookie('refresh_token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+        res.clearCookie('access_token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+        return data;
+    }
+
+    @Post('logout/all')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Log out user from current device' })
+    @ApiResponse({
+        status: 200
+    })
+    async logoutMultiDevice(
+        @CurrentUser() user: CurrentUserPayload,
+        @Req() req: Request,
+        @Res({ passthrough: true }) res: Response,
+    ) {
+        const refreshToken = req.cookies?.refresh_token;
+        const data = await this.authService.logoutMultiDevice(user.userId, refreshToken);
+        res.clearCookie('refresh_token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+        res.clearCookie('access_token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
+        return data;
     }
 }
