@@ -2,9 +2,10 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from '@nestjs/config';
 import { ConfigSchema } from "./config/config.schema";
 import { AppConfig } from "./config/app-config.service";
-import { HealthModule } from "./health/health.module";
-import { AuthModule } from "./auth/auth.module";
+import { HealthModule } from "./modules/health/health.module";
+import { AuthModule } from "./modules/auth/auth.module";
 import { ScheduleModule } from "@nestjs/schedule";
+import { GroupModule } from "./modules/group/group.module";
 
 @Module({
     imports: [
@@ -12,7 +13,7 @@ import { ScheduleModule } from "@nestjs/schedule";
             isGlobal: true,
             validate: (env) => ConfigSchema.parse(env),
         }),
-        HealthModule, AuthModule,
+        HealthModule, AuthModule, GroupModule,
         ScheduleModule.forRoot(),
     ],
     providers: [AppConfig],

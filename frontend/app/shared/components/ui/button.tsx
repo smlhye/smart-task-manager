@@ -4,7 +4,7 @@ import { ButtonHTMLAttributes, forwardRef } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/app/lib/cn";
 
-type Variant = "primary" | "secondary" | "outline" | "ghost";
+type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -38,6 +38,8 @@ export const Button = forwardRef<HTMLButtonElement, Props>(
                 "border border-[rgb(var(--color-border))] hover:bg-[rgb(var(--color-secondary))]",
             ghost:
                 "hover:bg-[rgb(var(--color-muted))]",
+            danger:
+                "bg-[rgb(var(--color-destructive))] text-[rgb(var(--color-destructive-foreground))] hover:opacity-90",
         };
 
         const sizes: Record<Size, string> = {

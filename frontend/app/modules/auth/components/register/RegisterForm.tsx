@@ -7,6 +7,7 @@ import { Button, Input } from "@/app/shared/components/ui";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import RegisterContent from "./RegisterContent";
+import Link from "next/link";
 
 type Props = {
     form: UseFormReturn<RegisterSchemaType>;
@@ -184,10 +185,10 @@ export default function RegisterForm({ form, onSubmit, loading }: Props) {
 
                         {/* FOOTER */}
                         <p className="text-xs text-center text-[rgb(var(--color-muted-foreground))]">
-                            Đã có tài khoản?{" "}
-                            <span className="underline cursor-pointer">
-                                Đăng nhập
-                            </span>
+                            Bạn đã có tài khoản?{" "}
+                            <Link href="/login" className="underline cursor-pointer">
+                                Đăng nhập ngay
+                            </Link>
                         </p>
                     </div>
                 </div>

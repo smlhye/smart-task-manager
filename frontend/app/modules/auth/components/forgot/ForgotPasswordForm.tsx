@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/app/shared/components/toggle/theme-toggle";
 import { Eye, EyeOff } from "lucide-react";
 import ForgotPasswordContent from "./ForgotPasswordContent";
 import { useForgotPassword } from "../../hooks/useForgotPassword";
+import Link from "next/link";
 
 export default function ForgotPasswordForm() {
     const {
@@ -186,6 +187,13 @@ export default function ForgotPasswordForm() {
                                 </Button>
                             </div>
                         )}
+
+                        <p className="text-xs text-center text-[rgb(var(--color-muted-foreground))]">
+                            Bạn đã nhớ tài khoản?{" "}
+                            <Link href="/login" className="underline cursor-pointer">
+                                Đăng nhập ngay
+                            </Link>
+                        </p>
                     </div>
                 </div>
             </div>

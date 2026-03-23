@@ -61,7 +61,7 @@ model GroupUser {
   id       Int          @id @default(autoincrement())
   userId   Int
   groupId  Int
-  roles    GroupRole
+  role    GroupRole
   user     User         @relation(fields: [userId], references: [id])
   group    Group        @relation(fields: [groupId], references: [id])
 
@@ -103,11 +103,9 @@ model ActivityLog {
 }
 
 enum GroupRole {
-  LEADER
-  MANAGER
-  CONTRIBUTOR
+  ADMIN
+  MEMBER
   VIEWER
-  GUEST
 }
 
 enum TaskStatus {
