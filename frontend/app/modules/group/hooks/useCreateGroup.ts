@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { groupService } from "../services/group.service"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import { encodeId } from "@/app/shared/utils/hashid"
 
 type Props = {
     onCloseModal: () => void;
@@ -11,6 +13,7 @@ type Props = {
 
 export const useCreateGroup = ({ onCloseModal }: Props) => {
     const queryClient = useQueryClient();
+    const router = useRouter();
     const form = useForm<GroupCreateType>({
         resolver: zodResolver(groupCreateSchema),
         defaultValues: {
@@ -24,6 +27,8 @@ export const useCreateGroup = ({ onCloseModal }: Props) => {
             toast.success("Tạo nhóm mới thành công");
             form.reset();
             onCloseModal();
+            const id = encodeId(res.data?.id!);
+            router.push(`/groups/${id}`);
 
             queryClient.invalidateQueries({
                 queryKey: ['my-groups'],

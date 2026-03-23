@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Group, GroupUser } from "@prisma/client";
+import { Group, GroupRole, GroupUser } from "@prisma/client";
 
 export class CreateGroupSuccess {
     @ApiProperty({ description: "ID of the newly created group", example: 1 })
@@ -32,6 +32,10 @@ export class CreateGroupSuccess {
     }
 }
 
+type GroupWithRole = Group & {
+    users: { role: GroupRole }[];
+};
+
 export class GroupSuccess {
     @ApiProperty({ example: 1, description: 'Group ID' })
     id: number;
@@ -45,16 +49,20 @@ export class GroupSuccess {
     @ApiProperty({ example: new Date().toISOString(), description: 'Group updated at timestamp' })
     updatedAt: string;
 
+    @ApiProperty({ example: GroupRole.ADMIN, description: 'Your permission' })
+    role: string;
+
     constructor(partial: Partial<GroupSuccess>) {
         Object.assign(this, partial);
     }
 
-    static fromModel(group: Group): GroupSuccess {
+    static fromModel(group: GroupWithRole): GroupSuccess {
         return new GroupSuccess({
             id: group.id,
             name: group.name,
             createdAt: group.createdAt.toISOString(),
             updatedAt: group.updatedAt.toISOString(),
+            role: group.users?.[0]?.role,
         })
     }
 }

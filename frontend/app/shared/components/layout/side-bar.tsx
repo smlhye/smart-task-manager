@@ -48,7 +48,7 @@ export default function Sidebar({ collapsed }: Props) {
                             href={item.href}
                             title={collapsed ? item.name : ""}
                             className={cn(
-                                "group flex items-center px-3 py-2 rounded-md text-sm",
+                                "group flex items-center px-3 py-2 rounded-md text-sm relative",
                                 "transition-all duration-200",
                                 collapsed ? "justify-center" : "gap-3",
                                 active
@@ -73,6 +73,16 @@ export default function Sidebar({ collapsed }: Props) {
                             >
                                 {item.name}
                             </span>
+                            {item.hasNew && (
+                                <span
+                                    className={cn(
+                                        "absolute w-2 h-2 rounded-full bg-red-500",
+                                        collapsed
+                                            ? "top-1 right-0 -translate-x-1/4 -translate-y-1/4"
+                                            : "top-1/2 right-2 -translate-y-1/2"
+                                    )}
+                                />
+                            )}
                         </Link>
                     );
                 })}

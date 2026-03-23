@@ -16,6 +16,19 @@ export class CreateGroup {
     }
 }
 
+export class UpdateGroup {
+    @ApiProperty({ example: 'NHÓM DEV - BACKEND' })
+    @IsNotEmpty({ message: 'Name is required' })
+    @Transform(({ value }) => value.trim())
+    name: string;
+
+    static toModel(data: UpdateGroup): Prisma.GroupUpdateInput {
+        return {
+            name: data.name,
+        }
+    }
+}
+
 export class FilterGroup {
     @ApiProperty({
         name: 'name',

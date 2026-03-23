@@ -17,4 +17,18 @@ export class GroupUserRepository {
             ...options,
         })
     }
+
+    async getRole(userId: number, groupId: number) {
+        return this.prisma.groupUser.findUnique({
+            where: {
+                userId_groupId: {
+                    userId,
+                    groupId,
+                }
+            },
+            select: {
+                role: true,
+            }
+        })
+    }
 }

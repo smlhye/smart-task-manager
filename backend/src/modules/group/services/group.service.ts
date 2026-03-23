@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { GroupRepository } from "../repositories/group.repository";
-import { CreateGroup, FilterGroup } from "../dto/request.dto";
+import { CreateGroup, FilterGroup, UpdateGroup } from "../dto/request.dto";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import { CreateGroupSuccess, GroupSuccess } from "../dto/response.dto";
@@ -34,16 +34,22 @@ export class GroupService {
         return CreateGroupSuccess.fromModel(createdGroup, createdGroupUser);
     }
 
+    async update(data: UpdateGroup, userId: number, groupId: number): Promise<GroupSuccess> {
+        const groupExisted = await this.groupRepo.findById(groupId);
+        if (!groupExisted) {
+            throw new BaseException({
+                code: ErrorCode.GROUP_NOT_FOUND,
+                message: 'Group is not found',
+                status: HttpStatus.NOT_FOUND,
+            })
+        }
+        const updatedGroup = await this.groupRepo.update(groupId, userId, UpdateGroup.toModel(data));
+        return GroupSuccess.fromModel(updatedGroup);
+    }
+
     async getMyGroups(userId: number, filter: FilterGroup): Promise<GroupSuccess[]> {
-        const groups = await this.groupRepo.getMyGroups(userId, filter, {
-            select: {
-                id: true,
-                name: true,
-                createdAt: true,
-                updatedAt: true,
-            }
-        })
-        const groupsSuccess = groups.map((item) => GroupSuccess.fromModel(item));
+        const groups = await this.groupRepo.getMyGroups(userId, filter);
+        const groupsSuccess = groups.map((group) => GroupSuccess.fromModel(group));
         return groupsSuccess;
     }
 }

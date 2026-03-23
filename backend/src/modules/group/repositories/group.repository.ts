@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Group, Prisma } from "@prisma/client";
+import { Group, GroupRole, Prisma } from "@prisma/client";
 import { QueryOptions } from "src/common/types/query-options";
 import { PrismaService } from "src/prisma/prisma.service";
 import { FilterGroup } from "../dto/request.dto";
@@ -19,7 +19,35 @@ export class GroupRepository {
         })
     }
 
-    async getMyGroups(userId: number, filter: FilterGroup, options?: GroupQueryOptions): Promise<Group[]> {
+    async update(
+        groupId: number,
+        userId: number,
+        data: Prisma.GroupUpdateInput,
+        options?: GroupQueryOptions
+    ): Promise<Group & { users: { role: GroupRole }[] }> {
+        return this.prisma.group.update({
+            where: { id: groupId },
+            data: { name: data.name },
+            include: {
+                users: {
+                    where: { userId },
+                    select: { role: true },
+                },
+            },
+            ...options,
+        })
+    }
+
+    async findById(groupId: number): Promise<Group | null> {
+        return this.prisma.group.findUnique({
+            where: {
+                id: groupId,
+            }
+        })
+    }
+
+    async getMyGroups(userId: number, filter: FilterGroup, options?: GroupQueryOptions):
+        Promise<(Group & { users: { role: GroupRole }[] })[]> {
         const take = filter.take ?? 20;
         const cursorDate = filter.cursor ? new Date(filter.cursor) : undefined;
         return this.prisma.group.findMany({
@@ -38,6 +66,16 @@ export class GroupRepository {
             },
             orderBy: {
                 updatedAt: "desc",
+            },
+            include: {
+                users: {
+                    where: {
+                        userId,
+                    },
+                    select: {
+                        role: true,
+                    }
+                }
             },
             take,
             ...options,

@@ -4,12 +4,14 @@ import {
     Users,
     BarChart3,
     Settings,
+    Bell,
 } from "lucide-react";
 
 export type SidebarItem = {
     name: string;
     href: string;
     icon: React.ElementType;
+    hasNew?: boolean,
     roles?: string[];
 };
 
@@ -28,6 +30,12 @@ export const SIDEBAR_MENU: SidebarItem[] = [
         name: "Nhóm của tôi",
         href: "/groups",
         icon: Users,
+    },
+    {
+        name: "Thông báo của tôi",
+        href: "/notifications",
+        icon: Bell,
+        hasNew: true,
     },
     {
         name: "Phân tích/Thống kê",

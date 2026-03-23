@@ -1,7 +1,8 @@
 import { parseApiResponse } from "@/app/lib/api-parser";
 import http from "@/app/services/http"
-import { FilterGroup, filterGroupSchema, groupCreatedSchema, GroupCreateType, groupsResponseSchema } from "../schemas/group.schema";
+import { FilterGroup, filterGroupSchema, groupCreatedSchema, GroupCreateType, groupSchema, groupsResponseSchema, GroupUpdateType } from "../schemas/group.schema";
 import { createApiResponseSchema } from "@/app/lib/api-schema";
+import { ErrorCode } from "@/app/shared/contants/error-code";
 
 export const groupService = {
     getGroupsApi: async (filter?: FilterGroup) => {
@@ -9,12 +10,29 @@ export const groupService = {
         const res = await http.get('groups', { params: parsed });
         return parseApiResponse(groupsResponseSchema, res.data);
     },
-    
+
     createApi: async (data: GroupCreateType) => {
         try {
             const res = await http.post('groups', data);
             return parseApiResponse(createApiResponseSchema(groupCreatedSchema), res.data);
         } catch (err: any) {
+            throw new Error("Không thể kết nối server");
+        }
+    },
+
+    updateApi: async (data: GroupUpdateType) => {
+        try {
+            const res = await http.put(`groups/${data.id}`, {
+                name: data.name,
+            });
+            return parseApiResponse(createApiResponseSchema(groupSchema), res.data);
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                if (data.error?.code === ErrorCode.GROUP_NOT_FOUND) {
+                    throw new Error('Không tìm thấy nhóm này')
+                }
+            }
             throw new Error("Không thể kết nối server");
         }
     }
