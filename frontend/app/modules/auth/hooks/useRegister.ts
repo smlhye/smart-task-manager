@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 
 export const useRegister = () => {
     const [loading, setLoading] = useState<boolean>(false);
-     const router = useRouter();
+    const router = useRouter();
     const form = useForm<RegisterSchemaType>({
         resolver: zodResolver(registerSchema),
         defaultValues: {

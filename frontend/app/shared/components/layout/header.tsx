@@ -5,10 +5,9 @@ import { useUserStore } from "@/app/modules/users/stores/user.store";
 import { ChevronDown, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Dropdown } from "../ui";
+import { ConfirmDialog, Dropdown } from "../ui";
 import { getUserMenu } from "@/app/modules/dashboard/constants/user-menu";
 import { useLogout } from "@/app/modules/auth/hooks/useLogout";
-import { ConfirmDialog } from "../ui/confirm-dialog";
 
 type Props = {
     onToggleSidebar: () => void;
@@ -29,7 +28,7 @@ export default function Header({ onToggleSidebar }: Props) {
 
     if (isLoading || !user) return null;
     return (
-        <header className="h-16 flex items-center justify-between px-5 border-b border-[rgb(var(--color-border))] bg-[rgb(var(--color-card))]">
+        <header className="h-16 flex items-center justify-between px-3 border-b border-[rgb(var(--color-border))] bg-[rgb(var(--color-card))]">
             <div className="flex items-center gap-3">
                 <button
                     onClick={onToggleSidebar}

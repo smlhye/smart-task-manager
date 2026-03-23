@@ -15,27 +15,27 @@ export type SidebarItem = {
 
 export const SIDEBAR_MENU: SidebarItem[] = [
     {
-        name: "Overview",
+        name: "Tổng quan",
         href: "/",
         icon: LayoutDashboard,
     },
     {
-        name: "My Tasks",
+        name: "Nhiệm vụ của tôi",
         href: "/tasks",
         icon: ListTodo,
     },
     {
-        name: "Groups",
+        name: "Nhóm của tôi",
         href: "/groups",
         icon: Users,
     },
     {
-        name: "Analytics",
+        name: "Phân tích/Thống kê",
         href: "/analytics",
         icon: BarChart3,
     },
     {
-        name: "Settings",
+        name: "Cài đặt cấu hình",
         href: "/settings",
         icon: Settings,
     },

@@ -6,7 +6,7 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator
 export class CreateGroup {
     @ApiProperty({ example: 'NHÓM DEV - BACKEND' })
     @IsNotEmpty({ message: 'Name is required' })
-    @Transform(({ value }) => value.toLowerCase().trim())
+    @Transform(({ value }) => value.trim())
     name: string;
 
     static toModel(data: CreateGroup): Prisma.GroupCreateInput {

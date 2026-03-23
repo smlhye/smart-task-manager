@@ -15,7 +15,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 )}
             >
                 <Header onToggleSidebar={() => setCollapsed(!collapsed)} />
-                <main className="flex-1 p-5 overflow-y-auto h-[calc(100vh-64px)]">
+                <main className="flex-1 p-3 overflow-hidden">
                     {children}
                 </main>
             </div>

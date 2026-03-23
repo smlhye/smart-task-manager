@@ -8,7 +8,7 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator";
 import type { CurrentUserPayload } from "../auth/strategies/jwt.strategy";
 
 @ApiTags('Group')
-@Controller('group')
+@Controller('groups')
 export class GroupController {
     constructor(
         private readonly groupService: GroupService,
