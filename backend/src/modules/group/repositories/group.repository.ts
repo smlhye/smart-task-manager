@@ -38,11 +38,12 @@ export class GroupRepository {
         })
     }
 
-    async findById(groupId: number): Promise<Group | null> {
+    async findById(groupId: number, options?: GroupQueryOptions): Promise<Group | null> {
         return this.prisma.group.findUnique({
             where: {
                 id: groupId,
-            }
+            },
+            ...options,
         })
     }
 

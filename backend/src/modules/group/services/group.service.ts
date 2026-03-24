@@ -3,7 +3,7 @@ import { GroupRepository } from "../repositories/group.repository";
 import { CreateGroup, FilterGroup, UpdateGroup } from "../dto/request.dto";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
-import { CreateGroupSuccess, GroupSuccess } from "../dto/response.dto";
+import { CreateGroupSuccess, GroupDetailsSuccess, GroupSuccess } from "../dto/response.dto";
 import { GroupUserRepository } from "../repositories/group-user.repository";
 import { GroupRole } from "@prisma/client";
 
@@ -51,5 +51,22 @@ export class GroupService {
         const groups = await this.groupRepo.getMyGroups(userId, filter);
         const groupsSuccess = groups.map((group) => GroupSuccess.fromModel(group));
         return groupsSuccess;
+    }
+
+    async getGroupById(groupId: number): Promise<GroupDetailsSuccess> {
+        const group = await this.groupRepo.findById(groupId, {
+            select: {
+                id: true,
+                name: true,
+                createdAt: true,
+                updatedAt: true,
+            }
+        })
+        if (!group) throw new BaseException({
+            code: ErrorCode.GROUP_NOT_FOUND,
+            message: 'Group is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        return GroupDetailsSuccess.fromModel(group);
     }
 }

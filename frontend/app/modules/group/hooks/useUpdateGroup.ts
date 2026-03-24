@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { groupService } from "../services/group.service"
 import { toast } from "sonner"
-import { id } from "zod/locales"
 
 type Props = {
     onCloseModal: () => void;

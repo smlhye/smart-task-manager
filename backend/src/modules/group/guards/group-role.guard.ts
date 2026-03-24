@@ -1,7 +1,6 @@
 import { CanActivate, ExecutionContext, HttpStatus, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { GroupUserRepository } from "../repositories/group-user.repository";
-import { Observable } from "rxjs";
 import { GroupRole } from "@prisma/client";
 import { GROUP_ROLE_KEY } from "../decorators/group-role.decorator";
 import { BaseException } from "src/common/errors/base.exception";
@@ -23,8 +22,7 @@ export class GroupRoleGuard implements CanActivate {
         if (!requiredRoles.length) return true;
         const request = context.switchToHttp().getRequest();
         const userId = request.user?.userId;
-
-        const groupId = request.body.groupId || request.params.groupId || request.query.groupId;
+        const groupId = request.body?.groupId || request.params?.groupId || request.query?.groupId;
         if (!groupId) {
             throw new BaseException({
                 code: ErrorCode.GROUP_MEMBER_NOT_FOUND,

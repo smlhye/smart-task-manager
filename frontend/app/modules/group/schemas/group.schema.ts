@@ -42,3 +42,12 @@ export const groupCreatedSchema = z.object({
     role: z.string(),
     createdAt: z.string(),
 })
+
+export const groupDetailsSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+})
+
+export type GroupDetailsType = z.infer<typeof groupDetailsSchema>;

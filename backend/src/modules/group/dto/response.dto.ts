@@ -66,3 +66,30 @@ export class GroupSuccess {
         })
     }
 }
+
+export class GroupDetailsSuccess {
+    @ApiProperty({ example: 1, description: 'Group ID' })
+    id: number;
+
+    @ApiProperty({ example: 'DEV Team', description: 'Group name' })
+    name: string;
+
+    @ApiProperty({ example: new Date().toISOString(), description: 'Group created at timestamp' })
+    createdAt: string;
+
+    @ApiProperty({ example: new Date().toISOString(), description: 'Group updated at timestamp' })
+    updatedAt: string;
+
+    constructor(partial: Partial<GroupSuccess>) {
+        Object.assign(this, partial);
+    }
+
+    static fromModel(group: Group): GroupSuccess {
+        return new GroupSuccess({
+            id: group.id,
+            name: group.name,
+            createdAt: group.createdAt.toISOString(),
+            updatedAt: group.updatedAt.toISOString(),
+        })
+    }
+}

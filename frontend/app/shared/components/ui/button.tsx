@@ -27,7 +27,7 @@ export const Button = forwardRef<HTMLButtonElement, Props>(
         ref
     ) => {
         const base =
-            "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-ring))]";
+            "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--color-ring))]";
 
         const variants: Record<Variant, string> = {
             primary:

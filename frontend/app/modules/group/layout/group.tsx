@@ -1,4 +1,4 @@
-import GroupListClient from "../components/GroupListClient";
+import GroupListContainer from "../components/GroupListContainer";
 
 type GroupLayoutProps = {
     children: React.ReactNode;
@@ -9,7 +9,7 @@ export default function GroupLayout({ children }: GroupLayoutProps) {
         <div className="flex gap-3 h-full">
             {/* Sidebar: list of groups */}
             <aside className="w-64 h-full flex flex-col">
-                <GroupListClient />
+                <GroupListContainer />
             </aside>
 
             {/* Main content */}

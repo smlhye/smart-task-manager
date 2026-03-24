@@ -57,7 +57,7 @@ export default function GroupItem({ group, active, index }: GroupItemProps) {
     return (
         <div>
             <Link
-                href={`/groups/${group.hash}`}
+                href={`/groups/${group.id}`}
                 className={cn(
                     "flex items-center gap-2 px-3 py-2 pr-10 rounded-md text-sm font-medium animate-fade-in relative group overflow-hidden",
                     active

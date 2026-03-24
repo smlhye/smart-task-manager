@@ -27,8 +27,7 @@ export const useCreateGroup = ({ onCloseModal }: Props) => {
             toast.success("Tạo nhóm mới thành công");
             form.reset();
             onCloseModal();
-            const id = encodeId(res.data?.id!);
-            router.push(`/groups/${id}`);
+            router.push(`/groups/${res.data?.id}`);
 
             queryClient.invalidateQueries({
                 queryKey: ['my-groups'],

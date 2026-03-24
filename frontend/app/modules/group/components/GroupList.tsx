@@ -12,11 +12,14 @@ type Props = {
     hasMore?: boolean,
 }
 
-export default function GroupListWrapper({ groups, loadMore, loadingMore, hasMore }: Props) {
+export default function GroupList({ groups, loadMore, loadingMore, hasMore }: Props) {
     const pathname = usePathname();
     const containerRef = useRef<HTMLDivElement>(null);
     const loadMoreRef = useRef<HTMLDivElement>(null);
-    const isActive = (hash: string) => pathname?.endsWith(hash);
+    const isActive = (id: number) => {
+        const parts = pathname?.split("/") || [];
+        return parts[parts.length - 1] === String(id);
+    };
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -41,7 +44,7 @@ export default function GroupListWrapper({ groups, loadMore, loadingMore, hasMor
     return (
         <nav className="flex flex-col gap-1 h-full overflow-y-auto scrollbar-hidden">
             {groups.map((g: any, index: number) => (
-                <GroupItem key={g.id} group={g} index={index} active={isActive(g.hash)} />
+                <GroupItem key={g.id} group={g} index={index} active={isActive(g.id)} />
             ))}
             <div ref={loadMoreRef} />
             {loadingMore && (

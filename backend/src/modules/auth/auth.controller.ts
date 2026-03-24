@@ -141,7 +141,6 @@ export class AuthController {
         type: UserResponseDto,
     })
     async getMe(@CurrentUser() user: CurrentUserPayload): Promise<UserResponseDto> {
-        console.log('USER:', user);
         return this.authService.getMe(user.userId);
     }
 
