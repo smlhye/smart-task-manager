@@ -10,7 +10,7 @@ export const createApiResponseSchema = <T extends z.ZodTypeAny>(dataSchema?: T) 
         statusCode: z.number(),
         success: z.boolean(),
         error: errorSchema.nullable(),
-        data: dataSchema ? dataSchema.nullable() : z.null(),
+        data: dataSchema ? dataSchema.nullable().optional() : z.null().optional(),
     });
 
 export type ApiResponse<T> = {

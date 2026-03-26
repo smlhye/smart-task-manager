@@ -4,9 +4,9 @@ import { useDebounced } from "@/app/shared/hooks/useDebounced";
 import { useState } from "react";
 import { useGroup } from "../hooks/useGroup";
 import { Button, Input, Modal } from "@/app/shared/components/ui";
-import GroupCreateForm from "./GroupCreateForm";
 import { Plus, Search } from "lucide-react";
 import GroupList from "./GroupList";
+import GroupCreateForm from "./form/GroupCreateForm";
 
 export default function GroupListContainer() {
     const [search, setSearch] = useState('');

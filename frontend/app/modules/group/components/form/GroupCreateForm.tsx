@@ -1,6 +1,6 @@
-import { useCreateGroup } from "../hooks/useCreateGroup"
 import { Button, Input } from "@/app/shared/components/ui";
 import { Plus } from "lucide-react";
+import { useCreateGroup } from "../../hooks/useCreateGroup";
 
 type Props = {
     onCloseModal: () => void;

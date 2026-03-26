@@ -1,7 +1,10 @@
 import { DashboardLayout } from "../modules/dashboard/layout/dashboard";
+import { WebSocketProvider } from "../modules/notification/contexts/websocket.context";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
     return (
-        <DashboardLayout>{children}</DashboardLayout>
+        <WebSocketProvider>
+            <DashboardLayout>{children}</DashboardLayout>
+        </WebSocketProvider>
     )
 }

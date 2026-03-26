@@ -35,7 +35,6 @@ export const SIDEBAR_MENU: SidebarItem[] = [
         name: "Thông báo của tôi",
         href: "/notifications",
         icon: Bell,
-        hasNew: true,
     },
     {
         name: "Phân tích/Thống kê",

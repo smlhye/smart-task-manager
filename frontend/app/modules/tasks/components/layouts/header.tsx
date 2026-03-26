@@ -1,4 +1,4 @@
-import { useTimeAgo } from "../../hooks/useTimeAgo";
+import { useTimeAgo } from "../../../../shared/hooks/useTimeAgo";
 
 type Props = {
     name?: string;

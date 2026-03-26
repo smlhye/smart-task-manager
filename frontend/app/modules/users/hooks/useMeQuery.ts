@@ -12,7 +12,5 @@ export function useMeQuery() {
             if (data) setUser(data);
             return data; 
         },
-        // staleTime: 1000 * 60 * 5,
-        // retry: 1,
     })
 }

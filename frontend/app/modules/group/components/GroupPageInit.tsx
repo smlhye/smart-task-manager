@@ -1,7 +1,7 @@
 'use client';
 import { Button, Modal } from "@/app/shared/components/ui";
 import { useState } from "react";
-import GroupCreateForm from "./GroupCreateForm";
+import GroupCreateForm from "./form/GroupCreateForm";
 
 export default function GroupPageInit() {
     const [open, setOpen] = useState(false);

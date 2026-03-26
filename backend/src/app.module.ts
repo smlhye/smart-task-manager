@@ -6,6 +6,8 @@ import { HealthModule } from "./modules/health/health.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { GroupModule } from "./modules/group/group.module";
+import { UserModule } from "./modules/user/user.module";
+import { NotificationModule } from "./modules/notification/notification.module";
 
 @Module({
     imports: [
@@ -13,7 +15,7 @@ import { GroupModule } from "./modules/group/group.module";
             isGlobal: true,
             validate: (env) => ConfigSchema.parse(env),
         }),
-        HealthModule, AuthModule, GroupModule,
+        HealthModule, AuthModule, GroupModule, UserModule, NotificationModule,
         ScheduleModule.forRoot(),
     ],
     providers: [AppConfig],

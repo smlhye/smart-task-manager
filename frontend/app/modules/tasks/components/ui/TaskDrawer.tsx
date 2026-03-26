@@ -3,10 +3,12 @@ import StatsSection from "./StatsSection";
 import TaskDrawerTrigger from "./TaskDrawerTrigger";
 
 interface Props {
+    onOpenModal?: () => void;
     toggle?: () => void;
+    groupId: number;
 }
 
-export default function TaskDrawer({ toggle }: Props) {
+export default function TaskDrawer({ groupId, toggle, onOpenModal }: Props) {
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
@@ -24,7 +26,7 @@ export default function TaskDrawer({ toggle }: Props) {
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-3 space-y-3">
                 <StatsSection />
-                <MembersSection />
+                <MembersSection onOpenModal={onOpenModal} groupId={groupId}/>
             </div>
         </div>
     );

@@ -22,6 +22,12 @@ export const ConfigSchema = z.object({
     RATE_LIMIT_TTL: z.coerce.number().default(60),
 
     FRONTEND_URL: z.string().url().default('http://localhost:3001'),
+
+    WS_PORT: z.coerce.number().default(3002),
+    WS_NAMESPACE: z.string().default('/socket'),
+    WS_CORS_ORIGIN: z.string().default('http://localhost:3001'),
+    WS_PING_INTERVAL: z.coerce.number().default(10000),
+    WS_PING_TIMEOUT: z.coerce.number().default(5000),
 })
 
 export type ConfigType = z.infer<typeof ConfigSchema>

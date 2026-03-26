@@ -1,5 +1,4 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { AuthRepository } from "../repositories/auth.repository";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import * as bcrypt from 'bcryptjs';
@@ -10,18 +9,19 @@ import { LoginDto, RegisterDto, UserResponseDto } from "../dto/request.dto";
 import { LoginResponseClientDto, LoginResponseDto, RegisterUserResponseDto } from "../dto/response.dto";
 import { RevokedTokenRepository } from "../repositories/revoked-token.repository";
 import { createHash } from "crypto";
+import { UserRepository } from "src/modules/user/repositories/user.repository";
 
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly authRepo: AuthRepository,
+        private readonly userRepo: UserRepository,
         private readonly tokenService: TokenService,
         private readonly sessionRepo: SessionRepository,
         private readonly revokedTokenRepo: RevokedTokenRepository
     ) { }
 
     async register(dto: RegisterDto) {
-        const existingUser = await this.authRepo.findByEmail(dto.email, { select: { id: true } });
+        const existingUser = await this.userRepo.findByEmail(dto.email, { select: { id: true } });
 
         if (existingUser) {
             throw new BaseException({
@@ -33,14 +33,14 @@ export class AuthService {
 
         const hashedPassword = await bcrypt.hash(dto.password, 12);
         const userData = mapDtoToUser(dto, hashedPassword);
-        const user = await this.authRepo.create(userData, {
+        const user = await this.userRepo.create(userData, {
             select: { id: true, email: true, firstName: true, lastName: true, }
         });
         return RegisterUserResponseDto.fromUser(user);
     }
 
     async login(dto: LoginDto, userAgent?: string, ip?: string): Promise<LoginResponseDto> {
-        const user = await this.authRepo.findByEmail(dto.email, {
+        const user = await this.userRepo.findByEmail(dto.email, {
             select: {
                 id: true,
                 email: true,
@@ -174,7 +174,7 @@ export class AuthService {
     }
 
     async getMe(userId: number): Promise<UserResponseDto> {
-        const user = await this.authRepo.findById(userId, {
+        const user = await this.userRepo.findById(userId, {
             select: {
                 id: true,
                 email: true,
@@ -246,7 +246,7 @@ export class AuthService {
                 status: 404,
             })
         }
-        const user = await this.authRepo.findById(userId, {
+        const user = await this.userRepo.findById(userId, {
             select: {
                 id: true,
                 isActive: true,

@@ -6,12 +6,19 @@ import { ErrorCode } from "src/common/errors/error-codes";
 import { CreateGroupSuccess, GroupDetailsSuccess, GroupSuccess } from "../dto/response.dto";
 import { GroupUserRepository } from "../repositories/group-user.repository";
 import { GroupRole } from "@prisma/client";
+import { FindUserNotInGroupByEmail } from "src/modules/user/dto/request.dto";
+import { FilterMemberSearch, MemberSearchResponse, MemberSearchResultDto, UserSearchResultDto } from "src/modules/user/dto/response.dto";
+import { UserRepository } from "src/modules/user/repositories/user.repository";
+import { NotificationService } from "src/modules/notification/services/notification.service";
+import { NotificationSuccess } from "src/modules/notification/dto/response.dto";
 
 @Injectable()
 export class GroupService {
     constructor(
         private readonly groupRepo: GroupRepository,
         private readonly groupUserRepo: GroupUserRepository,
+        private readonly userRepo: UserRepository,
+        private readonly notificationService: NotificationService,
     ) { }
 
     async create(data: CreateGroup, userId: number): Promise<CreateGroupSuccess> {
@@ -53,6 +60,17 @@ export class GroupService {
         return groupsSuccess;
     }
 
+    async getMemberOfGroup(groupId: number, filter: FilterMemberSearch): Promise<MemberSearchResponse> {
+        const result = await this.groupRepo.getMemberOfGroup(groupId, filter);
+        const members = result.data.map((group) =>
+            MemberSearchResultDto.fromModel(group)
+        );
+        return {
+            members,
+            nextCursor: result.nextCursor,
+        };
+    }
+
     async getGroupById(groupId: number): Promise<GroupDetailsSuccess> {
         const group = await this.groupRepo.findById(groupId, {
             select: {
@@ -68,5 +86,87 @@ export class GroupService {
             status: HttpStatus.NOT_FOUND,
         })
         return GroupDetailsSuccess.fromModel(group);
+    }
+
+    async findMemberInGroupByEmail(data: FindUserNotInGroupByEmail, groupId: number): Promise<UserSearchResultDto> {
+        const { email } = data;
+        const user = await this.userRepo.findByEmail(email, {
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                isActive: true,
+            }
+        });
+        if (!user) throw new BaseException({
+            code: ErrorCode.USER_NOT_FOUND,
+            message: 'User is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+
+        if (!user.isActive) throw new BaseException({
+            code: ErrorCode.USER_INVALID,
+            message: 'User is inactive',
+            status: HttpStatus.BAD_REQUEST
+        });
+
+        const group = await this.groupRepo.findById(groupId);
+        if (!group) throw new BaseException({
+            code: ErrorCode.GROUP_NOT_FOUND,
+            message: 'Group is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        const isMember = await this.groupRepo.isMember(groupId, user.id);
+        return UserSearchResultDto.fromModel(user, isMember);
+    }
+
+    async invitedUser(groupId: number, senderId: number, receiverId: number) {
+        const group = await this.groupRepo.findById(groupId);
+        if (!group) throw new BaseException({
+            code: ErrorCode.GROUP_NOT_FOUND,
+            message: 'Group is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        const sender = await this.userRepo.findById(senderId, {
+            select: {
+                id: true, isActive: true,
+            }
+        });
+        if (!sender) throw new BaseException({
+            code: ErrorCode.USER_NOT_FOUND,
+            message: 'Sender is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        if (!sender.isActive) throw new BaseException({
+            code: ErrorCode.USER_NOT_FOUND,
+            message: 'Sender is inactive',
+            status: HttpStatus.BAD_REQUEST,
+        })
+        const receiver = await this.userRepo.findById(receiverId, {
+            select: {
+                id: true, isActive: true,
+            }
+        });
+        if (!receiver) throw new BaseException({
+            code: ErrorCode.USER_NOT_FOUND,
+            message: 'Receiver is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        if (!receiver.isActive) throw new BaseException({
+            code: ErrorCode.USER_NOT_FOUND,
+            message: 'Receiver is inactive',
+            status: HttpStatus.BAD_REQUEST,
+        })
+
+        const isMember = await this.groupRepo.isMember(groupId, receiverId);
+        if (isMember) throw new BaseException({
+            code: ErrorCode.GROUP_MEMBER_EXISTS,
+            message: 'User is already a member',
+            status: HttpStatus.CONFLICT
+        })
+        const message = `Bạn được mời vào nhóm ${group.name}`;
+        const notification = await this.notificationService.createInviteNotification(senderId, receiverId, groupId, message);
+        return NotificationSuccess.fromModel(notification);
     }
 }

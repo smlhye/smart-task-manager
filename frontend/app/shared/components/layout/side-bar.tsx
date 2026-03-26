@@ -4,6 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SIDEBAR_MENU } from "../../types/sidebar.type";
 import { cn } from "@/app/lib/cn";
+import { useWebSocket } from "@/app/modules/notification/contexts/websocket.context";
+import { useEffect } from "react";
+import { useCountUnreadNotification } from "@/app/modules/notification/hooks/useCountUnreadNotification";
 
 type Props = {
     collapsed: boolean;
@@ -11,6 +14,22 @@ type Props = {
 
 export default function Sidebar({ collapsed }: Props) {
     const pathname = usePathname();
+
+    const { socket } = useWebSocket();
+
+    const { data, loading, error, refetch } = useCountUnreadNotification();
+
+    const unreadCount = data?.count ?? 0;
+    useEffect(() => {
+        if (!socket) return;
+        const handleNotification = () => {
+            refetch();
+        };
+        socket.on("notification", handleNotification);
+        return () => {
+            socket.off("notification", handleNotification);
+        };
+    }, [socket, refetch]);
 
     const isActive = (href: string) => {
         if (href === "/") return pathname === "/";
@@ -41,7 +60,7 @@ export default function Sidebar({ collapsed }: Props) {
                 {SIDEBAR_MENU.map((item) => {
                     const active = isActive(item.href);
                     const Icon = item.icon;
-
+                    const isNotificationItem = item.href === "/notifications";
                     return (
                         <Link
                             key={item.name}
@@ -73,15 +92,18 @@ export default function Sidebar({ collapsed }: Props) {
                             >
                                 {item.name}
                             </span>
-                            {item.hasNew && (
+                            {isNotificationItem && unreadCount > 0 && (
                                 <span
                                     className={cn(
-                                        "absolute w-2 h-2 rounded-full bg-red-500",
+                                        "absolute min-w-[16px] h-[16px] px-1 text-[10px] flex items-center justify-center",
+                                        "rounded-full bg-red-500 text-white",
                                         collapsed
                                             ? "top-1 right-0 -translate-x-1/4 -translate-y-1/4"
                                             : "top-1/2 right-2 -translate-y-1/2"
                                     )}
-                                />
+                                >
+                                    {unreadCount > 99 ? "99+" : unreadCount}
+                                </span>
                             )}
                         </Link>
                     );

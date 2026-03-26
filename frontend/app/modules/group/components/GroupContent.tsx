@@ -10,9 +10,10 @@ import GroupNotFoundPage from "./ui/GroupNotFound";
 import GroupNotValidate from "./ui/GroupNotValidate";
 import Drawer from "@/app/shared/components/ui/drawer";
 import TaskDrawerTrigger from "../../tasks/components/ui/TaskDrawerTrigger";
-import { Button } from "@/app/shared/components/ui";
+import { Button, Modal } from "@/app/shared/components/ui";
 import { UserPlus } from "lucide-react";
 import { cn } from "@/app/lib/cn";
+import GroupAddMemberForm from "./form/GroupAddMemberForm";
 
 interface GroupContentProps {
     id: string | undefined;
@@ -20,6 +21,7 @@ interface GroupContentProps {
 
 export default function GroupContent({ id }: GroupContentProps) {
     const [open, setOpen] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
 
     const groupId = Number(id);
     if (!id || Number.isNaN(groupId) || groupId <= 0) return <GroupNotValidate />
@@ -31,7 +33,12 @@ export default function GroupContent({ id }: GroupContentProps) {
 
     return (
         <div className="flex h-full w-full relative">
-            {/* MAIN */}
+            <Modal
+                open={openModal}
+                onClose={() => setOpenModal(false)}
+            >
+                <GroupAddMemberForm groupId={groupId} onCloseModal={() => setOpenModal(false)} />
+            </Modal>
             <div className="flex flex-col w-full h-full border-l bg-[rgb(var(--color-muted))]">
                 <TaskHeader
                     id={data?.id}
@@ -45,20 +52,18 @@ export default function GroupContent({ id }: GroupContentProps) {
                                 className={cn(
                                     "h-8 w-8 p-0 hover:bg-[rgb(var(--color-muted))]",
                                 )}
+                                onClick={() => setOpenModal(true)}
                             >
                                 <UserPlus className="w-4 h-4 text-[rgb(var(--color-muted-foreground))]" />
                             </Button>
-
                             <TaskDrawerTrigger toggle={() => setOpen(true)} />
                         </div>
                     }
                 />
-
-                <TaskContainer id={data?.id} createdAt={data?.createdAt} />
+                <TaskContainer />
             </div>
-
             <Drawer open={open} variant="bordered">
-                <TaskDrawer toggle={() => setOpen(false)} />
+                <TaskDrawer onOpenModal={() => { setOpenModal(true); setOpen(false) }} groupId={groupId} toggle={() => setOpen(false)} />
             </Drawer>
         </div>
     );

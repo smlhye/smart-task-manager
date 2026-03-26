@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { UserResponseType } from "../../users/schemas/user.schema";
-import { userService } from "../services/user.service";
 
 export type userStore = {
     user: UserResponseType | null;

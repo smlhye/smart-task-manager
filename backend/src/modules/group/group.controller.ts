@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Put, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Query, UseGuards } from "@nestjs/common";
 import { GroupService } from "./services/group.service";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateGroupSuccess, GroupDetailsSuccess, GroupSuccess } from "./dto/response.dto";
@@ -12,6 +12,10 @@ import { ErrorResponseDto } from "src/common/schemas/error-response.dto";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import { GroupRoleGuard } from "./guards/group-role.guard";
+import { FilterMemberSearch, MemberSearchResponse, UserSearchResultDto } from "../user/dto/response.dto";
+import { FindUserNotInGroupByEmail } from "../user/dto/request.dto";
+import { SuccessResponseDto } from "src/common/schemas/success-response.dto";
+import { NotificationSuccess } from "../notification/dto/response.dto";
 
 @ApiTags('Group')
 @Controller('groups')
@@ -86,6 +90,25 @@ export class GroupController {
         return this.groupService.getMyGroups(user.userId, filter);
     }
 
+    @Get(':groupId/members')
+    @UseGuards(JwtAuthGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Get member of the group'
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: SuccessResponseDto<MemberSearchResponse>
+    })
+    async getMemberOfGroup(
+        @Query() filter: FilterMemberSearch,
+        @Param('groupId', ParseIntPipe) groupId: number
+    ): Promise<MemberSearchResponse> {
+        return this.groupService.getMemberOfGroup(groupId, filter);
+    }
+
     @Get(':groupId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
     @HasGroupRole(GroupRole.ADMIN, GroupRole.VIEWER, GroupRole.MEMBER)
@@ -106,7 +129,6 @@ export class GroupController {
         type: ErrorResponseDto
     })
     async getGroupDetails(
-        @CurrentUser() user: CurrentUserPayload,
         @Param('groupId') groupId: string,
     ): Promise<GroupDetailsSuccess> {
         const groupIdNum = Number(groupId);
@@ -119,4 +141,54 @@ export class GroupController {
         }
         return this.groupService.getGroupById(groupIdNum);
     }
-}
+
+    @Get(':groupId/members/search')
+    @UseGuards(JwtAuthGuard, GroupRoleGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: "Search user by email in group",
+        description: "Check if a user exists and whether they are a member of the group",
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'User found',
+        type: SuccessResponseDto<UserSearchResultDto>,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid input',
+        type: ErrorResponseDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User or group not found',
+        type: ErrorResponseDto,
+    })
+    async findMemberByEmail(
+        @Param('groupId') groupId: string,
+        @Query() query: FindUserNotInGroupByEmail,
+    ): Promise<UserSearchResultDto> {
+        return this.groupService.findMemberInGroupByEmail(query, Number(groupId));
+    }
+
+    @Post(':groupId/members/:receiverId')
+    @UseGuards(JwtAuthGuard, GroupRoleGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Send invitation to a user to join the group' })
+    @ApiResponse({ status: 200, description: 'Invitation sent successfully', type: SuccessResponseDto<NotificationSuccess> })
+    @ApiResponse({ status: 404, description: 'Group or user not found', type: ErrorResponseDto })
+    @ApiResponse({ status: 400, description: 'Sender or receiver inactive', type: ErrorResponseDto })
+    @ApiResponse({ status: 409, description: 'User is already a member', type: ErrorResponseDto })
+    async sendInvitationMember(
+        @CurrentUser() user: CurrentUserPayload,
+        @Param('groupId') groupId: string,
+        @Param('receiverId') receiverId: string,
+    ): Promise<NotificationSuccess> {
+        const senderId = user.userId;
+        return this.groupService.invitedUser(Number(groupId), senderId, Number(receiverId));
+    }
+}   

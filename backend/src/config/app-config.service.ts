@@ -45,4 +45,24 @@ export class AppConfig {
     get JWT_REFRESH_EXPIRATION(): string {
         return this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRATION');
     }
+
+    get WS_PORT(): number {
+        return this.configService.getOrThrow<number>('WS_PORT');
+    }
+
+    get WS_NAMESPACE(): string {
+        return this.configService.getOrThrow<string>('WS_NAMESPACE');
+    }
+
+    get WS_CORS_ORIGIN(): string {
+        return this.configService.getOrThrow<string>('WS_CORS_ORIGIN');
+    }
+
+    get WS_PING_INTERVAL(): number {
+        return this.configService.getOrThrow<number>('WS_PING_INTERVAL');
+    }
+
+    get WS_PING_TIMEOUT(): number {
+        return this.configService.getOrThrow<number>('WS_PING_TIMEOUT');
+    }
 }
