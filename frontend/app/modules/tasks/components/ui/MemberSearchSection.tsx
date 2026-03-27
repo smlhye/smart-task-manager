@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 type Props = {
     onOpenModal?: () => void;
     groupId: number;
-    onSearch?: (value: string) => void;
+    onSearch?: (value: string) => void;    
 };
 
 export default function MemberSearchSection({ onOpenModal, onSearch }: Props) {

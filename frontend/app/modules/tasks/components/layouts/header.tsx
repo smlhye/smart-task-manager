@@ -39,13 +39,14 @@ const getAvatar = (str?: string) => {
 };
 
 export default function TaskHeader({ id, name, updatedAt, rightSlot }: Props) {
+    if(!name) return <TaskHeaderSkeleton/>
     const avatar = getAvatar(name);
     const avatarColor = stringToColor(id!.toString());
     const timeAgo = useTimeAgo(
         updatedAt ? new Date(updatedAt) : undefined
     );
     return (
-        <div className="flex items-center justify-between pb-3 bg-[rgb(var(--color-card))]">
+        <div className="flex items-center justify-between pb-3 bg-[rgb(var(--color-background))]">
             <div className="flex items-stretch gap-3 pl-3">
                 <div
                     className="px-2 flex items-center justify-center rounded-md text-xs font-semibold text-white"
@@ -70,6 +71,24 @@ export default function TaskHeader({ id, name, updatedAt, rightSlot }: Props) {
                     {rightSlot}
                 </div>
             )}
+        </div>
+    );
+}
+
+function TaskHeaderSkeleton() {
+    return (
+        <div className="flex items-center justify-between pb-3 bg-[rgb(var(--color-card))] px-3">
+            <div className="flex items-center gap-3">
+                <div className="w-8 h-8 skeleton rounded-md" />
+                <div className="flex flex-col gap-2">
+                    <div className="h-4 w-32 skeleton" />
+                    <div className="h-3 w-20 skeleton" />
+                </div>
+            </div>
+            <div className="flex gap-2">
+                <div className="w-8 h-8 skeleton rounded-md" />
+                <div className="w-8 h-8 skeleton rounded-md" />
+            </div>
         </div>
     );
 }

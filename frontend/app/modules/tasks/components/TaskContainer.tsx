@@ -1,33 +1,35 @@
 'use client';
-import { useState, useEffect } from "react";
 import TaskBoard from "./ui/TaskBoard";
-export type TaskCardProps = {
-    id: number;
-    title: string;
-    description?: string;
-    status: TaskStatus;
-    priority?: Priority;
-    deadline?: string;
-    assignee?: string;
-};
-export type TaskStatus = "PENDING" | "IN_PROGRESS" | "DONE";
-export type Priority = "LOW" | "MEDIUM" | "HIGH";
-export default function TaskContainer() {
-    const [tasks, setTasks] = useState<TaskCardProps[] | null>(null);
+import { useTasksPending } from "../../group/hooks/useTasksPending";
+import { useTasksInProgress } from "../../group/hooks/useTasksInProgress";
+import { useTasksDone } from "../../group/hooks/useTasksDone";
+import { useRouter } from "next/navigation";
+import { useTaskStore } from "../stores/task.store";
 
-    // Fake fetch
-    useEffect(() => {
-        setTimeout(() => {
-            setTasks([
-                { id: 1, title: "Thiết kế UI mới", status: "PENDING", priority: "HIGH", deadline: "2026-03-30" },
-                { id: 2, title: "Viết API cho Task", status: "IN_PROGRESS", priority: "MEDIUM" },
-                { id: 3, title: "Code module Member", status: "DONE", priority: "LOW" },
-                { id: 4, title: "Setup tailwind theme", status: "PENDING", priority: "MEDIUM" },
-            ]);
-        }, 1000);
-    }, []);
+type Props = {
+    groupId: number;
+}
 
-    if (!tasks) {
+export default function TaskContainer({ groupId }: Props) {
+    const router = useRouter();
+    const setMethod = useTaskStore((s) => s.setMethod);
+    const setGroupId = useTaskStore((s) => s.setGroupId);
+    const { tasks: pendingTasks, loadMore: pendingLoadMore, hasMore: pendingHasMore, loadingMore: pendingLoadingMore } = useTasksPending(groupId, {
+        take: 20,
+    });
+    const { tasks: inProgressTasks, loadMore: inProgressLoadMore, hasMore: inProgressHasMore, loadingMore: inProgressLoadingMore } = useTasksInProgress(groupId, {
+        take: 20,
+    });
+    const { tasks: doneTasks, loadMore: doneLoadMore, hasMore: doneHasMore, loadingMore: doneLoadingMore } = useTasksDone(groupId, {
+        take: 20,
+    });
+
+    const handleCreateClick = () => {
+        setMethod('CREATE');
+        setGroupId(groupId);
+        router.push(`${groupId}/tasks`);
+    }
+    if (!pendingTasks || !inProgressTasks || !doneTasks) {
         return (
             <div className="flex gap-4 w-full h-full p-4 overflow-x-auto">
                 <TaskColumnSkeleton />
@@ -37,7 +39,13 @@ export default function TaskContainer() {
         );
     }
 
-    return <TaskBoard tasks={tasks} onTaskClick={(task) => alert(task.title)} />;
+    return (
+        <div className="flex gap-3 w-full h-full p-3 items-stretch overflow-x-auto">
+            <TaskBoard groupId={groupId} onCreateTask={handleCreateClick} loadMore={pendingLoadMore} hasMore={pendingHasMore} loadingMore={pendingLoadingMore} status={'PENDING'} tasks={pendingTasks} onTaskClick={() => { }} />
+            <TaskBoard groupId={groupId} loadMore={inProgressLoadMore} hasMore={inProgressHasMore} loadingMore={inProgressLoadingMore} status={'IN_PROGRESS'} tasks={inProgressTasks} onTaskClick={() => { }} />
+            <TaskBoard groupId={groupId} loadMore={doneLoadMore} hasMore={doneHasMore} loadingMore={doneLoadingMore} status={'DONE'} tasks={doneTasks} onTaskClick={() => { }} />
+        </div>
+    );
 }
 
 export function TaskColumnSkeleton() {

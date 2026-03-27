@@ -1,72 +1,86 @@
-'use client';
+import { cn } from "@/app/lib/cn";
+import { CreatedTaskType, TaskStatusType } from "../../schemas/task.schema";
+import { Badge, Button, Variant } from "@/app/shared/components/ui";
+import { Plus } from "lucide-react";
+import TaskItem from "./TaskItem";
+import { useInfiniteScroll } from "@/app/shared/hooks/useInfiniteScroll";
+import { useRef } from "react";
 
-import { useState } from "react";
-
-export type TaskCardProps = {
-    id: number;
-    title: string;
-    description?: string;
-    status: TaskStatus;
-    priority?: Priority;
-    deadline?: string;
-    assignee?: string;
-};
-
-export type TaskStatus = "PENDING" | "IN_PROGRESS" | "DONE";
-
-export type Priority = "LOW" | "MEDIUM" | "HIGH";
 type Props = {
-    tasks: TaskCardProps[];
-    onTaskClick?: (task: TaskCardProps) => void;
+    status: TaskStatusType;
+    tasks: CreatedTaskType[];
+    onCreateTask?: () => void;
+    onTaskClick?: () => void;
+    loadMore: () => void,
+    loadingMore: boolean,
+    hasMore?: boolean,
+    groupId: number,
 }
 
-export default function TaskBoard({ tasks, onTaskClick }: Props) {
+const STATUS_TITLES: Record<TaskStatusType, string> = {
+    PENDING: "Mới",
+    IN_PROGRESS: "Đang xử lý",
+    DONE: "Hoàn thành",
+};
 
-    const columns: { title: string; status: TaskStatus }[] = [
-        { title: "Mới", status: 'PENDING' },
-        { title: "Đang làm", status: 'IN_PROGRESS' },
-        { title: "Hoàn thành", status: 'DONE' },
-    ];
+const STATUS_VARIANTS: Record<TaskStatusType, string> = {
+    PENDING: "default",
+    IN_PROGRESS: "warning",
+    DONE: "success",
+};
 
+const PRIORITY_CLASSES: Record<string, string> = {
+    HIGH: "bg-red-500",
+    MEDIUM: "bg-yellow-500",
+    LOW: "bg-green-500",
+};
+
+export default function TaskBoard({ loadMore, hasMore, loadingMore, status, tasks, onCreateTask, onTaskClick, groupId }: Props) {
+    const title = STATUS_TITLES[status] ?? "Không xác định";
+    const variant = STATUS_VARIANTS[status] ?? "default";
+    const containerRef = useRef<HTMLDivElement>(null);
+    const loadMoreRef = useInfiniteScroll({
+        hasMore,
+        loading: loadingMore,
+        onLoadMore: loadMore,
+        root: containerRef.current,
+        threshold: 1,
+    });
     return (
-        <div className="flex gap-4 w-full h-full p-4 overflow-x-auto">
-            {columns.map((col) => (
-                <div key={col.status} className="flex-1 bg-[rgb(var(--color-muted))] rounded-[var(--radius)] p-3 flex flex-col gap-3">
-                    <h3 className="text-sm font-semibold uppercase text-[rgb(var(--color-muted-foreground))] mb-2">
-                        {col.title}
-                    </h3>
-                    <div className="flex-1 flex flex-col gap-2 overflow-y-auto scrollbar-hidden">
-                        {tasks
-                            .filter(t => t.status === col.status)
-                            .map((task) => (
-                                <div
-                                    key={task.id}
-                                    className="card cursor-pointer hover:shadow-md transition"
-                                    onClick={() => onTaskClick?.(task)}
-                                >
-                                    <h4 className="text-sm font-medium mb-1">{task.title}</h4>
-                                    {task.priority && (
-                                        <span
-                                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full text-white ${task.priority === "HIGH"
-                                                    ? "bg-red-500"
-                                                    : task.priority === "MEDIUM"
-                                                        ? "bg-yellow-500"
-                                                        : "bg-green-500"
-                                                }`}
-                                        >
-                                            {task.priority.toUpperCase()}
-                                        </span>
-                                    )}
-                                    {task.deadline && (
-                                        <p className="text-[11px] text-[rgb(var(--color-muted-foreground))] mt-1">
-                                            {new Date(task.deadline).toLocaleDateString()}
-                                        </p>
-                                    )}
-                                </div>
-                            ))}
-                    </div>
+        <div className="flex w-full h-full overflow-x-auto">
+            <div key={status} className="flex-1 bg-[rgb(var(--color-muted))] rounded-[var(--radius)] flex flex-col">
+                <div className="flex items-stretch justify-between bg-[rgb(var(--color-card))] shadow-sm mb-3 rounded-md p-2">
+                    <Badge className="rouded" variant={variant as Variant}>
+                        <h3 className={cn("text-sm font-semibold text-[rgb(var(--color-muted-foreground))]",
+                            "flex-1"
+                        )}>
+                            {title}
+                        </h3>
+                    </Badge>
+                    {status === 'PENDING' ? (
+                        <Button
+                            onClick={onCreateTask}
+                            variant="ghost"
+                            size="sm"
+                            className={cn(
+                                "h-8 w-8 p-0 hover:bg-[rgb(var(--color-muted))]",
+                            )}
+                        >
+                            <Plus className="w-4 h-4 text-[rgb(var(--color-muted-foreground))]" />
+                        </Button>
+                    ) : (
+                        <div className="w-8 h-8"></div>
+                    )}
                 </div>
-            ))}
+                <div className="flex-1 flex flex-col gap-3 overflow-y-auto scrollbar-hidden">
+                    {tasks
+                        .map((task, index) => (
+                            <TaskItem groupId={groupId} index={index} key={task.id} task={task} />
+                        ))}
+                    <div ref={loadMoreRef} />
+                    {loadingMore && <p className="text-center py-2 text-sm">Loading...</p>}
+                </div>
+            </div>
         </div>
     );
 }

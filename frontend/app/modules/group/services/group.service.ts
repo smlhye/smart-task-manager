@@ -5,6 +5,7 @@ import { createApiResponseSchema } from "@/app/lib/api-schema";
 import { ErrorCode } from "@/app/shared/contants/error-code";
 import { notificationSchema } from "../../notification/schemas/notification.schema";
 import { filterMemberSearchSchema, FilterMemberSearchType, memberSearchResponseSchema } from "../../users/schemas/user.schema";
+import { createdTaskSchema, CreateTaskType, filterTaskSchema, FilterTaskType, taskListSchema } from "../../tasks/schemas/task.schema";
 
 export const groupService = {
     getGroupsApi: async (filter?: FilterGroup) => {
@@ -16,11 +17,29 @@ export const groupService = {
     getMemberOfGroupApi: async (groupId: number, filter?: FilterMemberSearchType) => {
         try {
             const parsed = filterMemberSearchSchema.parse(filter ?? {});
-        const res = await http.get(`groups/${groupId}/members`, { params: parsed });
-        return parseApiResponse(createApiResponseSchema(memberSearchResponseSchema), res.data);
-        } catch(e){
+            const res = await http.get(`groups/${groupId}/members`, { params: parsed });
+            return parseApiResponse(createApiResponseSchema(memberSearchResponseSchema), res.data);
+        } catch (e) {
             console.log(e);
         }
+    },
+
+    getTaskPending: async (groupId: number, filter?: FilterTaskType) => {
+        const parsed = filterTaskSchema.parse(filter ?? {});
+        const res = await http.get(`groups/${groupId}/tasks/pending`, { params: parsed });
+        return parseApiResponse(createApiResponseSchema(taskListSchema), res.data);
+    },
+
+    getTaskInProgress: async (groupId: number, filter?: FilterTaskType) => {
+        const parsed = filterTaskSchema.parse(filter ?? {});
+        const res = await http.get(`groups/${groupId}/tasks/in-progress`, { params: parsed });
+        return parseApiResponse(createApiResponseSchema(taskListSchema), res.data);
+    },
+
+    getTaskDone: async (groupId: number, filter?: FilterTaskType) => {
+        const parsed = filterTaskSchema.parse(filter ?? {});
+        const res = await http.get(`groups/${groupId}/tasks/done`, { params: parsed });
+        return parseApiResponse(createApiResponseSchema(taskListSchema), res.data);
     },
 
     createApi: async (data: GroupCreateType) => {
@@ -110,5 +129,14 @@ export const groupService = {
                 throw new Error("Không thể kết nối server");
             }
         }
-    }
+    },
+
+    createTaskApi: async (groupId: number, data: CreateTaskType) => {
+        try {
+            const res = await http.post(`groups/${groupId}/tasks`, data);
+            return parseApiResponse(createApiResponseSchema(createdTaskSchema), res.data);
+        } catch (err: any) {
+            throw new Error("Không thể kết nối server");
+        }
+    },
 }

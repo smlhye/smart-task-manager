@@ -8,6 +8,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { GroupModule } from "./modules/group/group.module";
 import { UserModule } from "./modules/user/user.module";
 import { NotificationModule } from "./modules/notification/notification.module";
+import { TaskModule } from "./modules/task/task.module";
 
 @Module({
     imports: [
@@ -15,7 +16,7 @@ import { NotificationModule } from "./modules/notification/notification.module";
             isGlobal: true,
             validate: (env) => ConfigSchema.parse(env),
         }),
-        HealthModule, AuthModule, GroupModule, UserModule, NotificationModule,
+        HealthModule, AuthModule, GroupModule, UserModule, NotificationModule, TaskModule,
         ScheduleModule.forRoot(),
     ],
     providers: [AppConfig],

@@ -1,12 +1,14 @@
-import GroupContent from "@/app/modules/group/components/GroupContent";
+import GroupNotValidate from "@/app/modules/group/components/ui/GroupNotValidate";
+import TaskContainer from "@/app/modules/tasks/components/TaskContainer";
 
 interface GroupPageProps {
     params: Promise<{ id: string }>;
 }
-
 export default async function GroupPage({ params }: GroupPageProps) {
     const { id } = await params;
+    const groupId = Number(id);
+        if (!id || Number.isNaN(groupId) || groupId <= 0) return <GroupNotValidate />
     return (
-        <GroupContent id={id} />
+        <TaskContainer groupId={groupId} />
     )
 }

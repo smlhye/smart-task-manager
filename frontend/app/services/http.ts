@@ -12,7 +12,7 @@ const resolveQueue = () => {
     pendingRequests = [];
 };
 
-const NO_REFRESH_URLS = ["auth/login", "auth/refresh", "auth/logout", "auth/logout/all"];
+const NO_REFRESH_URLS = ["auth/login", "auth/refresh"];
 
 http.interceptors.response.use(
     (response) => response,

@@ -1,6 +1,6 @@
 import { cn } from "@/app/lib/cn";
 
-type Variant = "default" | "success" | "warning" | "danger";
+export type Variant = "default" | "success" | "warning" | "danger";
 
 export function Badge({
     className,

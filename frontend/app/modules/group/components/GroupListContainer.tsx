@@ -30,7 +30,7 @@ export default function GroupListContainer() {
                 <div className="flex gap-1">
                     <div className="relative w-full">
                         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <Input placeholder="Tìm tên nhóm..." className="pl-9" onChange={(e) => setSearch(e.target.value)} />
+                        <Input id="search-group" name="search-group" placeholder="Tìm tên nhóm..." className="pl-9" onChange={(e) => setSearch(e.target.value)} />
                     </div>
 
                     <Button variant="outline" onClick={() => setOpen(true)}>

@@ -16,12 +16,16 @@ import { FilterMemberSearch, MemberSearchResponse, UserSearchResultDto } from ".
 import { FindUserNotInGroupByEmail } from "../user/dto/request.dto";
 import { SuccessResponseDto } from "src/common/schemas/success-response.dto";
 import { NotificationSuccess } from "../notification/dto/response.dto";
+import { TaskService } from "../task/services/task.service";
+import { TaskCreatedSuccess, TaskItemSuccess } from "../task/dto/response.dto";
+import { CreateTask, FilterTask } from "../task/dto/request.dto";
 
 @ApiTags('Group')
 @Controller('groups')
 export class GroupController {
     constructor(
         private readonly groupService: GroupService,
+        private readonly taskService: TaskService,
     ) { }
 
     @Post()
@@ -109,6 +113,63 @@ export class GroupController {
         return this.groupService.getMemberOfGroup(groupId, filter);
     }
 
+    @Get(':groupId/tasks/pending')
+    @UseGuards(JwtAuthGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Get list tasks is pending of group'
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: SuccessResponseDto<[TaskItemSuccess]>
+    })
+    async getTasksPending(
+        @Param('groupId', ParseIntPipe) groupId: number,
+        @Query() filter: FilterTask
+    ): Promise<TaskItemSuccess[]> {
+        return this.groupService.findByGroupIdAndStatus(groupId, filter, 'PENDING');
+    }
+
+    @Get(':groupId/tasks/in-progress')
+    @UseGuards(JwtAuthGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Get list tasks is in progress of group'
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: SuccessResponseDto<[TaskItemSuccess]>
+    })
+    async getTasksInProgress(
+        @Param('groupId', ParseIntPipe) groupId: number,
+        @Query() filter: FilterTask
+    ): Promise<TaskItemSuccess[]> {
+        return this.groupService.findByGroupIdAndStatus(groupId, filter, 'IN_PROGRESS');
+    }
+
+    @Get(':groupId/tasks/done')
+    @UseGuards(JwtAuthGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: 'Get list tasks is done of group'
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        type: SuccessResponseDto<[TaskItemSuccess]>
+    })
+    async getTasksDone(
+        @Param('groupId', ParseIntPipe) groupId: number,
+        @Query() filter: FilterTask
+    ): Promise<TaskItemSuccess[]> {
+        return this.groupService.findByGroupIdAndStatus(groupId, filter, 'DONE');
+    }
+
     @Get(':groupId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
     @HasGroupRole(GroupRole.ADMIN, GroupRole.VIEWER, GroupRole.MEMBER)
@@ -190,5 +251,66 @@ export class GroupController {
     ): Promise<NotificationSuccess> {
         const senderId = user.userId;
         return this.groupService.invitedUser(Number(groupId), senderId, Number(receiverId));
+    }
+
+    @Post(':groupId/tasks')
+    @UseGuards(JwtAuthGuard, GroupRoleGuard)
+    @HasGroupRole(GroupRole.ADMIN)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Create a new task for a group' })
+    @ApiResponse({
+        status: 200,
+        description: 'Task created successfully',
+        type: SuccessResponseDto<TaskCreatedSuccess>,
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Invalid request data or inactive user',
+        type: ErrorResponseDto,
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Group not found',
+        type: ErrorResponseDto,
+    })
+    @ApiResponse({
+        status: 409,
+        description: 'Some assignees are already assigned to this task',
+        type: ErrorResponseDto,
+    })
+    async createTask(
+        @Param('groupId', ParseIntPipe) groupId: number,
+        @Body() data: CreateTask
+    ): Promise<TaskCreatedSuccess> {
+        return this.taskService.create(groupId, data);
+    }
+
+    @Post(':groupId/tasks/:taskId')
+    @UseGuards(JwtAuthGuard, GroupRoleGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Find a task for a group by id' })
+    @ApiResponse({
+        status: 200,
+        description: 'Ok',
+        type: SuccessResponseDto<TaskCreatedSuccess>,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'The group is not contains this task',
+        type: ErrorResponseDto,
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Task not found',
+        type: ErrorResponseDto,
+    })
+    async findTaskById(
+        @Param('groupId', ParseIntPipe) groupId: number,
+        @Param('taskId', ParseIntPipe) taskId: number,
+    ): Promise<TaskCreatedSuccess> {
+        return this.taskService.getTaskById(groupId, taskId);
     }
 }   

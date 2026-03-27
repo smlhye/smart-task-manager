@@ -18,7 +18,7 @@ export default function GroupList({ groups, loadMore, loadingMore, hasMore }: Pr
     const loadMoreRef = useRef<HTMLDivElement>(null);
     const isActive = (id: number) => {
         const parts = pathname?.split("/") || [];
-        return parts[parts.length - 1] === String(id);
+        return parts[2] === String(id);
     };
 
     useEffect(() => {

@@ -5,12 +5,15 @@ import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import { CreateGroupSuccess, GroupDetailsSuccess, GroupSuccess } from "../dto/response.dto";
 import { GroupUserRepository } from "../repositories/group-user.repository";
-import { GroupRole } from "@prisma/client";
+import { GroupRole, TaskStatus } from "@prisma/client";
 import { FindUserNotInGroupByEmail } from "src/modules/user/dto/request.dto";
 import { FilterMemberSearch, MemberSearchResponse, MemberSearchResultDto, UserSearchResultDto } from "src/modules/user/dto/response.dto";
 import { UserRepository } from "src/modules/user/repositories/user.repository";
 import { NotificationService } from "src/modules/notification/services/notification.service";
 import { NotificationSuccess } from "src/modules/notification/dto/response.dto";
+import { TaskRepository } from "src/modules/task/repositories/task.repository";
+import { FilterTask } from "src/modules/task/dto/request.dto";
+import { TaskCreatedSuccess, TaskItemSuccess } from "src/modules/task/dto/response.dto";
 
 @Injectable()
 export class GroupService {
@@ -19,6 +22,7 @@ export class GroupService {
         private readonly groupUserRepo: GroupUserRepository,
         private readonly userRepo: UserRepository,
         private readonly notificationService: NotificationService,
+        private readonly taskRepository: TaskRepository,
     ) { }
 
     async create(data: CreateGroup, userId: number): Promise<CreateGroupSuccess> {
@@ -58,6 +62,12 @@ export class GroupService {
         const groups = await this.groupRepo.getMyGroups(userId, filter);
         const groupsSuccess = groups.map((group) => GroupSuccess.fromModel(group));
         return groupsSuccess;
+    }
+
+    async findByGroupIdAndStatus(groupId: number, filter: FilterTask, status: TaskStatus): Promise<TaskCreatedSuccess[]> {
+        const tasks = await this.taskRepository.findByGroupIdAndStatus(groupId, filter, status);
+        const tasksSuccess = tasks.map((task) => TaskItemSuccess.fromModel(task));
+        return tasksSuccess;
     }
 
     async getMemberOfGroup(groupId: number, filter: FilterMemberSearch): Promise<MemberSearchResponse> {

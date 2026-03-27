@@ -9,11 +9,14 @@ import { NotificationService } from "../notification/services/notification.servi
 import { NotificationRepository } from "../notification/repositories/notification.repository";
 import { WebsocketGateway } from "src/websocket/websocket.gateway";
 import { AppConfig } from "src/config/app-config.service";
+import { TaskService } from "../task/services/task.service";
+import { TaskRepository } from "../task/repositories/task.repository";
+import { TaskAssigneeRepository } from "../task/repositories/task-assignee.repository";
 
 @Module({
     imports: [PrismaModule],
     providers: [GroupService, GroupRepository, GroupUserRepository, 
-        UserRepository, NotificationService, NotificationRepository, WebsocketGateway, AppConfig],
+        UserRepository, NotificationService, NotificationRepository, WebsocketGateway, AppConfig, TaskService, TaskRepository, TaskAssigneeRepository],
     controllers: [GroupController],
     exports: [GroupService]
 })

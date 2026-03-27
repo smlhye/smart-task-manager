@@ -1,3 +1,5 @@
+'use client';
+
 import GroupListContainer from "../components/GroupListContainer";
 
 type GroupLayoutProps = {

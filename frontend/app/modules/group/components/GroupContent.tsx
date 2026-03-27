@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import TaskHeader from "../../tasks/components/layouts/header";
-import TaskContainer from "../../tasks/components/TaskContainer";
 import TaskDrawer from "../../tasks/components/ui/TaskDrawer";
 import { useGetGroupById } from "../hooks/useGetGroupById";
-import GroupLoading from "./ui/GroupLoading";
 import GroupNotFoundPage from "./ui/GroupNotFound";
 import GroupNotValidate from "./ui/GroupNotValidate";
 import Drawer from "@/app/shared/components/ui/drawer";
@@ -14,12 +12,14 @@ import { Button, Modal } from "@/app/shared/components/ui";
 import { UserPlus } from "lucide-react";
 import { cn } from "@/app/lib/cn";
 import GroupAddMemberForm from "./form/GroupAddMemberForm";
+import GroupContentSkeleton from "./ui/GroupContentSkeleton";
 
 interface GroupContentProps {
     id: string | undefined;
+    children: React.ReactNode;
 }
 
-export default function GroupContent({ id }: GroupContentProps) {
+export default function GroupContent({ id, children }: GroupContentProps) {
     const [open, setOpen] = useState(false);
     const [openModal, setOpenModal] = useState(false);
 
@@ -28,7 +28,7 @@ export default function GroupContent({ id }: GroupContentProps) {
 
     const { data, loading, error, refetch } = useGetGroupById(groupId);
 
-    if (loading) return <GroupLoading />
+    if (loading) return <GroupContentSkeleton />
     if (error) return <GroupNotFoundPage error={error} refetch={refetch} />
 
     return (
@@ -60,7 +60,7 @@ export default function GroupContent({ id }: GroupContentProps) {
                         </div>
                     }
                 />
-                <TaskContainer />
+                {children}
             </div>
             <Drawer open={open} variant="bordered">
                 <TaskDrawer onOpenModal={() => { setOpenModal(true); setOpen(false) }} groupId={groupId} toggle={() => setOpen(false)} />

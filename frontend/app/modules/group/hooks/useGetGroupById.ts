@@ -9,6 +9,7 @@ export const useGetGroupById = (groupId: number) => {
             const res = await groupService.getGroupByIdApi(groupId);
             return res?.data!;
         },
+        placeholderData: (prev) => prev,
         staleTime: 1000 * 60 * 5,
         enabled: !!groupId,
     })
