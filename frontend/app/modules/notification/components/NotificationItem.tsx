@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -15,6 +15,9 @@ import { useMarkAsReadNotification } from "../hooks/useMarkAsReadNotification";
 import { useDeletetNotification } from "../hooks/useDeleteNotification";
 
 import { NotificationItemType } from "../schemas/notification.schema";
+import { useTaskStore } from "../../tasks/stores/task.store";
+import { getTaskById } from "../../tasks/hooks/useGetTaskById";
+import { CreatedTaskType } from "../../tasks/schemas/task.schema";
 
 interface Props {
     item: NotificationItemType;
@@ -31,6 +34,15 @@ const stringToColor = (str: string) => {
 
 export default function NotificationItem({ item, index }: Props) {
     const router = useRouter();
+    const reset = useTaskStore((s) => s.reset);
+    const setMethod = useTaskStore((s) => s.setMethod);
+    const setGroupId = useTaskStore((s) => s.setGroupId);
+    const setTask = useTaskStore((s) => s.setTask);
+    const { data, loading, error } = getTaskById({
+        groupId: item.groupId,
+        taskId: item.taskId,
+        enabled: !!item?.taskId,
+    });
 
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -47,6 +59,13 @@ export default function NotificationItem({ item, index }: Props) {
     const handleClick = () => {
         if (!item.isRead && !isReading) {
             markAsRead(item.id);
+        }
+        if (item.type === "INFORMATION") {
+            reset();
+            setMethod("UPDATE");
+            setGroupId(item.groupId);
+            if (data) setTask(data);
+            router.push(`/groups/${item.groupId}/tasks/${item.taskId}`);
         }
     };
 
@@ -147,7 +166,7 @@ export default function NotificationItem({ item, index }: Props) {
                         <span className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-[rgb(var(--color-secondary))] text-[rgb(var(--color-primary))]">
                             {item.groupName}
                         </span>
-                        {item.status === "PENDING" && (
+                        {item.status === "PENDING" && item.type === "INVITE_GROUP" && (
                             <div className="flex items-center gap-1">
                                 <button
                                     disabled={accepting}

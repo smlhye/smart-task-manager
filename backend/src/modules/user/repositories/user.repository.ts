@@ -19,6 +19,16 @@ export class UserRepository {
         });
     }
 
+    async update(id: number, input: Prisma.UserUpdateInput, options?: UserQueryOptions,) {
+        return this.prisma.user.update({
+            where: {
+                id
+            },
+            data: input,
+            ...options,
+        });
+    }
+
     async findById(id: number, options?: UserQueryOptions): Promise<User | null> {
         return this.prisma.user.findUnique({
             where: { id },
@@ -28,5 +38,17 @@ export class UserRepository {
 
     async create(data: Prisma.UserCreateInput, options: UserQueryOptions): Promise<User> {
         return this.prisma.user.create({ data, ...options });
+    }
+
+    async getMember(userId: number, groupId: number): Promise<User | null> {
+        return this.prisma.user.findFirst({
+            where: {
+                groups: {
+                    some: {
+                        groupId: groupId,
+                    }
+                }
+            },
+        })
     }
 }

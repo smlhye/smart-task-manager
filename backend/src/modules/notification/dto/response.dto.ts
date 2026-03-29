@@ -26,6 +26,9 @@ export class NotificationSuccess {
     @ApiProperty({ description: 'Related group ID, if any', required: false, nullable: true, example: 3 })
     groupId?: number | null;
 
+    @ApiProperty({ description: 'Related task ID, if any', required: false, nullable: true, example: 1 })
+    taskId?: number | null;
+
     @ApiProperty({ description: 'Timestamp when the notification was created', example: '2026-03-25T10:20:30.000Z' })
     createdAt: string;
 
@@ -41,6 +44,7 @@ export class NotificationSuccess {
             message: notification.message,
             type: notification.type,
             status: notification.status,
+            taskId: notification.taskId,
             isRead: notification.isRead,
             groupId: notification.groupId ?? undefined,
             createdAt: notification.createdAt.toISOString(),
@@ -73,8 +77,11 @@ export class NotificationItemSuccess {
     @ApiProperty({ description: 'Whether the notification has been read', example: false })
     isRead: boolean;
 
-    @ApiProperty({ description: 'Related group ID, if any', required: false, nullable: true, example: 3 })
+    @ApiProperty({ description: 'Related group ID, if any', required: false, nullable: true, example: 1 })
     groupId?: number | null;
+
+    @ApiProperty({ description: 'Related task ID, if any', required: false, nullable: true, example: 1 })
+    taskId?: number | null;
 
     @ApiProperty({ description: 'Name of group', required: false, nullable: true, example: 'Nhóm ABC' })
     groupName?: string | null;
@@ -90,11 +97,12 @@ export class NotificationItemSuccess {
         return new NotificationItemSuccess({
             id: notification.id,
             senderId: notification.senderId ?? undefined,
-            senderFullname: fullName,
+            senderFullname: notification.senderName ?? fullName,
             receiverId: notification.userId,
             message: notification.message,
             type: notification.type,
             status: notification.status,
+            taskId: notification.taskId,
             isRead: notification.isRead,
             groupId: notification.groupId ?? undefined,
             groupName: groupName,

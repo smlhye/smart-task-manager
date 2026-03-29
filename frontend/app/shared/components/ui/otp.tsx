@@ -24,15 +24,12 @@ export const OtpInput = forwardRef<HTMLDivElement, OtpInputProps>(
         );
 
         const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
-
-        // Sync external value
         useEffect(() => {
             if (value) {
                 const arr = value.split("").slice(0, length);
                 setValues(arr.concat(Array(length - arr.length).fill("")));
             }
         }, [value, length]);
-
         const updateValues = (vals: string[]) => {
             setValues(vals);
             onChange?.(vals.join(""));
@@ -48,11 +45,9 @@ export const OtpInput = forwardRef<HTMLDivElement, OtpInputProps>(
         };
 
         const handleChange = (index: number, val: string) => {
-            if (!/^\d*$/.test(val)) return; // only numbers
+            if (!/^\d*$/.test(val)) return;
 
             const newValues = [...values];
-
-            // paste multiple digits
             if (val.length > 1) {
                 const digits = val.split("");
                 let currentIndex = index;
@@ -93,10 +88,8 @@ export const OtpInput = forwardRef<HTMLDivElement, OtpInputProps>(
                 const newValues = [...values];
 
                 if (newValues[index]) {
-                    // delete current
                     newValues[index] = "";
                 } else if (index > 0) {
-                    // move back and delete
                     newValues[index - 1] = "";
                     inputsRef.current[index - 1]?.focus();
                 }
@@ -135,7 +128,6 @@ export const OtpInput = forwardRef<HTMLDivElement, OtpInputProps>(
         };
 
         const handleClick = (index: number) => {
-            // rule: always focus the first empty index
             const firstEmpty = values.findIndex((v) => v === "");
 
             if (firstEmpty !== -1) {
@@ -148,7 +140,10 @@ export const OtpInput = forwardRef<HTMLDivElement, OtpInputProps>(
         return (
             <div
                 ref={ref}
-                className={cn("flex gap-2", className)}
+                style={{
+                    gridTemplateColumns: `repeat(${length}, minmax(0, 1fr))`,
+                }}
+                className={cn("grid gap-2 w-full", className)}
                 onClick={focusNextEmpty}
             >
                 {values.map((value, index) => (
@@ -168,7 +163,7 @@ export const OtpInput = forwardRef<HTMLDivElement, OtpInputProps>(
                         onPaste={handlePaste}
                         onClick={() => handleClick(index)}
                         className={cn(
-                            "w-10 h-12 text-center text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-ring))]"
+                            "w-full aspect-square text-center text-lg border rounded-md focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-ring))]"
                         )}
                     />
                 ))}

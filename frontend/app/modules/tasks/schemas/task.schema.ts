@@ -29,7 +29,7 @@ export const createTaskSchema = z.object({
         .refine((val) => !isNaN(Date.parse(val)), {
             message: "Hạn nộp không hợp lệ",
         }),
-    assignees: z.array(z.number()).optional().default([]),
+    assignees: z.array(z.number()).default([]),
 })
 
 export type CreateTaskType = z.input<typeof createTaskSchema>;
@@ -62,3 +62,18 @@ export const filterTaskSchema = z.object({
 })
 
 export type FilterTaskType = z.infer<typeof filterTaskSchema>;
+
+export const taskFormSchema = createTaskSchema.extend({
+    status: taskStatusSchema.optional(),
+});
+
+export type TaskFormType = z.input<typeof taskFormSchema>;
+
+export const countTaskSchema = z.object({
+    total: z.number(),
+    inProgress: z.number(),
+    done: z.number(),
+    overdue: z.number(),
+})
+
+export type CountTaskType = z.infer<typeof countTaskSchema>;

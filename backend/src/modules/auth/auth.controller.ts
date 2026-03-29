@@ -1,14 +1,15 @@
-import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Ip, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Ip, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
 import { AuthService } from "./services/auth.service";
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { LoginResponseClientDto, RegisterUserResponseDto } from "./dto/response.dto";
-import { LoginDto, RegisterDto, UserResponseDto } from "./dto/request.dto";
+import { ChangedPassword, ChangedPasswordForm, LoginDto, RegisterDto, UserResponseDto } from "./dto/request.dto";
 import type { Request, Response } from "express";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { CurrentUser } from "./decorators/current-user.decorator";
 import type { CurrentUserPayload } from "./strategies/jwt.strategy";
+import { FindUserNotInGroupByEmail, VerifyOtp } from "../user/dto/request.dto";
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -32,6 +33,73 @@ export class AuthController {
     ): Promise<RegisterUserResponseDto> {
         return this.authService.register(registerDto);
     }
+
+    @Post('send-otp')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Send OTP to user email' })
+    @ApiResponse({
+        status: 200,
+        description: 'OTP sent successfully',
+    })
+    @ApiResponse({
+        status: 429,
+        description: 'You have sent OTP more than 5 times in 1 hour',
+    })
+    async sendOtp(@Body() dto: FindUserNotInGroupByEmail): Promise<void> {
+        return this.authService.sendOtp(dto);
+    }
+
+    @Post('verify-otp')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Verify OTP sent to user email' })
+    @ApiResponse({
+        status: 200,
+        description: 'OTP verified successfully',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'OTP is invalid or expired',
+    })
+    @ApiResponse({
+        status: 429,
+        description: 'You have entered wrong OTP more than 5 times, please try again later',
+    })
+    async verifyOtp(@Body() dto: VerifyOtp): Promise<void> {
+        return this.authService.verifyOtp(dto);
+    }
+
+    @Patch('change-password')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Change user password' })
+    @ApiResponse({
+        status: 200,
+        description: 'Password changed successfully',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'User is not found',
+    })
+    async changePassword(@Body() dto: ChangedPassword): Promise<void> {
+        return this.authService.changePassword(dto);
+    }
+
+    @Patch('change-password/form')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Change user password' })
+    @ApiResponse({
+        status: 200,
+        description: 'Password changed successfully',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'User is not found',
+    })
+    async changePasswordForm(@CurrentUser() user: CurrentUserPayload, @Body() dto: ChangedPasswordForm): Promise<void> {
+        return this.authService.changePasswordForm(user.userId, dto);
+    }
+
 
     @Post('login')
     @HttpCode(HttpStatus.OK)

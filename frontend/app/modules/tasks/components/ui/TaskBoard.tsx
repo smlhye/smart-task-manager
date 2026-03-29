@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import TaskItem from "./TaskItem";
 import { useInfiniteScroll } from "@/app/shared/hooks/useInfiniteScroll";
 import { useRef } from "react";
+import { useMember } from "@/app/modules/group/hooks/useMember";
 
 type Props = {
     status: TaskStatusType;
@@ -38,6 +39,7 @@ const PRIORITY_CLASSES: Record<string, string> = {
 export default function TaskBoard({ loadMore, hasMore, loadingMore, status, tasks, onCreateTask, onTaskClick, groupId }: Props) {
     const title = STATUS_TITLES[status] ?? "Không xác định";
     const variant = STATUS_VARIANTS[status] ?? "default";
+    const { data } = useMember({ groupId });
     const containerRef = useRef<HTMLDivElement>(null);
     const loadMoreRef = useInfiniteScroll({
         hasMore,
@@ -46,18 +48,19 @@ export default function TaskBoard({ loadMore, hasMore, loadingMore, status, task
         root: containerRef.current,
         threshold: 1,
     });
+    if(!data) return <>Loading...</>;
     return (
         <div className="flex w-full h-full overflow-x-auto">
             <div key={status} className="flex-1 bg-[rgb(var(--color-muted))] rounded-[var(--radius)] flex flex-col">
                 <div className="flex items-stretch justify-between bg-[rgb(var(--color-card))] shadow-sm mb-3 rounded-md p-2">
-                    <Badge className="rouded" variant={variant as Variant}>
-                        <h3 className={cn("text-sm font-semibold text-[rgb(var(--color-muted-foreground))]",
+                    <Badge className="rounded-md" variant={variant as Variant}>
+                        <h3 className={cn("text-sm font-semibold text-[rgb(var(--color-white))]",
                             "flex-1"
                         )}>
                             {title}
                         </h3>
                     </Badge>
-                    {status === 'PENDING' ? (
+                    {status === 'PENDING' && data.role === "ADMIN" ? (
                         <Button
                             onClick={onCreateTask}
                             variant="ghost"

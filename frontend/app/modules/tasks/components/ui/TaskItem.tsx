@@ -29,14 +29,14 @@ export default function TaskItem({ task, index, groupId }: Props) {
     const setTask = useTaskStore((s) => s.setTask);
     const { data, loading, error, refetch } = getTaskById({ groupId, taskId: task.id });
 
-    if(loading) return <>Loading</>
-    if(error) return <>Có lỗi</>
+    if (loading) return <>Loading</>
+    if (error) return <>Có lỗi</>
 
     const handleUpdate = () => {
         reset(),
-        setMethod("UPDATE");
+            setMethod("UPDATE");
         setGroupId(groupId);
-        if(data) setTask(data);
+        if (task) setTask(task);
         router.push(`${groupId}/tasks/${task.id}`);
     }
     return (
@@ -56,6 +56,7 @@ export default function TaskItem({ task, index, groupId }: Props) {
                     <h4 className="text-sm font-semibold">{task.title}</h4>
                     {task.priority && (
                         <Badge
+                            className="rounded-full"
                             variant={PRIORITY_CLASSES[task.priority]}
                         >
                             {task.priority}
@@ -71,7 +72,7 @@ export default function TaskItem({ task, index, groupId }: Props) {
 
                 {task.deadline && (
                     <p className="text-xs text-[rgb(var(--color-muted-foreground))]">
-                        Hạn chót: <span className="font-bold">{new Date(task.deadline).toLocaleDateString()}</span>
+                        Hạn chót: <span className="font-bold">{new Date(task.deadline).toLocaleString()}</span>
                     </p>
                 )}
 

@@ -2,7 +2,6 @@ import {
     LayoutDashboard,
     ListTodo,
     Users,
-    BarChart3,
     Settings,
     Bell,
 } from "lucide-react";
@@ -35,11 +34,6 @@ export const SIDEBAR_MENU: SidebarItem[] = [
         name: "Thông báo của tôi",
         href: "/notifications",
         icon: Bell,
-    },
-    {
-        name: "Phân tích/Thống kê",
-        href: "/analytics",
-        icon: BarChart3,
     },
     {
         name: "Cài đặt cấu hình",

@@ -49,6 +49,10 @@
 "use client";
 
 import { CheckCircle2, Clock, ListTodo, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMeQuery } from "../modules/users/hooks/useMeQuery";
+import { useUserStore } from "../modules/users/stores/user.store";
+import { useEffect } from "react";
 
 const stats = [
     {
@@ -74,6 +78,17 @@ const stats = [
 ];
 
 export default function DashboardOverview() {
+    const router = useRouter();
+    const { isLoading } = useMeQuery();
+    const { user } = useUserStore();
+
+    useEffect(() => {
+        if (!isLoading && !user) {
+            router.replace("/login");
+        }
+    }, [isLoading, user, router]);
+
+    if (isLoading || !user) return null;
     return (
         <div className="space-y-6">
 

@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Priority } from "@prisma/client";
+import { Priority, TaskStatus } from "@prisma/client";
 import { Type } from "class-transformer";
 import { IsArray, IsNumber, IsOptional, IsString, Min } from "class-validator";
 
@@ -21,7 +21,38 @@ export class CreateTask {
     @IsString()
     deadline: string;
 
-    @ApiProperty({ example: [1,2,3], description: 'ID Members assigned' })
+    @ApiProperty({ example: [1, 2, 3], description: 'ID Members assigned' })
+    @IsArray()
+    assignees: number[];
+
+    constructor(partial: Partial<CreateTask>) {
+        Object.assign(this, partial);
+    }
+}
+
+export class UpdateTask {
+    @ApiProperty({ example: 'Thiết kế UI trang Dashboard', description: 'Title' })
+    @IsString()
+    title: string;
+
+    @ApiProperty({ example: 'Tạo wireframe và mockup', description: 'Description' })
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @ApiProperty({ example: Priority.MEDIUM, description: 'Priority' })
+    @IsString()
+    priority: string;
+
+    @ApiProperty({ example: new Date().toISOString(), description: 'Deadline' })
+    @IsString()
+    deadline: string;
+
+    @ApiProperty({ example: TaskStatus.PENDING, description: 'Status' })
+    @IsString()
+    status: string;
+
+    @ApiProperty({ example: [1, 2, 3], description: 'ID Members assigned' })
     @IsArray()
     assignees: number[];
 

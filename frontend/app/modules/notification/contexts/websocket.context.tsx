@@ -37,6 +37,18 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
 
             socketRef.current.on('notification', (payload: NotificationItemType) => {
                 console.log('Received notification', payload);
+                queryClient.invalidateQueries({
+                    queryKey: ["tasks-pending"],
+                    refetchType: "active",
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["tasks-in-progress"],
+                    refetchType: "active",
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["tasks-done"],
+                    refetchType: "active",
+                });
                 queryClient.setQueryData(['my-notifications', { take: 20 }], (oldData: any) => {
                     if (!oldData) return { pages: [[payload]], pageParams: [] };
                     return {
@@ -46,9 +58,9 @@ export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
                     };
                 });
                 queryClient.setQueriesData(
-                    {queryKey: ['count-unread-notifications']},
-                    (old:any) => {
-                        if(!old) return old;
+                    { queryKey: ['count-unread-notifications'] },
+                    (old: any) => {
+                        if (!old) return old;
                         return {
                             ...old,
                             count: Math.max(0, old.count + 1),

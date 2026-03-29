@@ -12,13 +12,13 @@ import { ErrorResponseDto } from "src/common/schemas/error-response.dto";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import { GroupRoleGuard } from "./guards/group-role.guard";
-import { FilterMemberSearch, MemberSearchResponse, UserSearchResultDto } from "../user/dto/response.dto";
+import { FilterMemberSearch, MemberSearchResponse, MemberSearchResultDto, UserSearchResultDto } from "../user/dto/response.dto";
 import { FindUserNotInGroupByEmail } from "../user/dto/request.dto";
 import { SuccessResponseDto } from "src/common/schemas/success-response.dto";
 import { NotificationSuccess } from "../notification/dto/response.dto";
 import { TaskService } from "../task/services/task.service";
-import { TaskCreatedSuccess, TaskItemSuccess } from "../task/dto/response.dto";
-import { CreateTask, FilterTask } from "../task/dto/request.dto";
+import { CountTask, TaskCreatedSuccess, TaskItemSuccess } from "../task/dto/response.dto";
+import { CreateTask, FilterTask, UpdateTask } from "../task/dto/request.dto";
 
 @ApiTags('Group')
 @Controller('groups')
@@ -234,6 +234,37 @@ export class GroupController {
         return this.groupService.findMemberInGroupByEmail(query, Number(groupId));
     }
 
+    @Get(':groupId/members/me')
+    @UseGuards(JwtAuthGuard, GroupRoleGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({
+        summary: "Get me in group",
+        description: "Get my information in group",
+    })
+    @ApiResponse({
+        status: HttpStatus.OK,
+        description: 'My information found',
+        type: SuccessResponseDto<MemberSearchResultDto>,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'Invalid input',
+        type: ErrorResponseDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'User or group not found',
+        type: ErrorResponseDto,
+    })
+    async getMember(
+        @Param('groupId', ParseIntPipe) groupId: number,
+        @CurrentUser() user: CurrentUserPayload,
+    ): Promise<MemberSearchResultDto> {
+        return this.groupService.getMember(groupId, user.userId);
+    }
+
     @Post(':groupId/members/:receiverId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
     @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
@@ -286,7 +317,30 @@ export class GroupController {
         return this.taskService.create(groupId, data);
     }
 
-    @Post(':groupId/tasks/:taskId')
+    
+
+    @Get(':groupId/tasks/count')
+    @UseGuards(JwtAuthGuard, GroupRoleGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Count tasks in group' })
+    @ApiResponse({
+        status: 200,
+        description: 'Task statistics',
+        type: SuccessResponseDto<CountTask>,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Group is not found',
+        type: ErrorResponseDto,
+    })
+    async countTask(
+        @Param('groupId', ParseIntPipe) groupId: number,
+    ): Promise<CountTask> {
+        return this.groupService.countTask(groupId);
+    }
+
+    @Get(':groupId/tasks/:taskId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
     @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
     @ApiBearerAuth()
@@ -304,13 +358,42 @@ export class GroupController {
     })
     @ApiResponse({
         status: 404,
-        description: 'Task not found',
+        description: 'Task is not found',
         type: ErrorResponseDto,
     })
     async findTaskById(
         @Param('groupId', ParseIntPipe) groupId: number,
         @Param('taskId', ParseIntPipe) taskId: number,
     ): Promise<TaskCreatedSuccess> {
-        return this.taskService.getTaskById(groupId, taskId);
+        return await this.taskService.getTaskById(groupId, taskId);
+    }
+
+    @Put(':groupId/tasks/:taskId')
+    @UseGuards(JwtAuthGuard, GroupRoleGuard)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Update a task for a group by id' })
+    @ApiResponse({
+        status: 200,
+        description: 'Ok',
+        type: SuccessResponseDto<TaskCreatedSuccess>,
+    })
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
+        description: 'The group is not contains this task',
+        type: ErrorResponseDto,
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Task is not found',
+        type: ErrorResponseDto,
+    })
+    async updateTask(
+        @Param('groupId', ParseIntPipe) groupId: number,
+        @Param('taskId', ParseIntPipe) taskId: number,
+        @Body() data: UpdateTask
+    ): Promise<TaskCreatedSuccess> {
+        return this.taskService.update(groupId, taskId, data);
     }
 }   

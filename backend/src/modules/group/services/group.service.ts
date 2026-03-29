@@ -13,7 +13,7 @@ import { NotificationService } from "src/modules/notification/services/notificat
 import { NotificationSuccess } from "src/modules/notification/dto/response.dto";
 import { TaskRepository } from "src/modules/task/repositories/task.repository";
 import { FilterTask } from "src/modules/task/dto/request.dto";
-import { TaskCreatedSuccess, TaskItemSuccess } from "src/modules/task/dto/response.dto";
+import { CountTask, TaskCreatedSuccess, TaskItemSuccess } from "src/modules/task/dto/response.dto";
 
 @Injectable()
 export class GroupService {
@@ -79,6 +79,31 @@ export class GroupService {
             members,
             nextCursor: result.nextCursor,
         };
+    }
+
+    async getMember(groupId: number, userId: number): Promise<MemberSearchResultDto> {
+        const group = await this.groupRepo.findById(groupId);
+        if(!group) throw new BaseException({
+            code: ErrorCode.GROUP_NOT_FOUND,
+            message: 'Group is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        const isMember = await this.groupRepo.isMember(groupId, userId);
+        if(!isMember) throw new BaseException({
+            code: ErrorCode.GROUP_MEMBER_NOT_FOUND,
+            message: 'You is not member of group',
+            status: HttpStatus.NOT_FOUND,
+        });
+
+        const user = await this.userRepo.findById(userId);
+        const role = await this.groupUserRepo.getRole(userId, groupId);
+        return new MemberSearchResultDto({
+            id: user?.id,
+            firstName: user?.firstName,
+            lastName: user?.lastName,
+            email: user?.email,
+            role: role?.role,
+        })
     }
 
     async getGroupById(groupId: number): Promise<GroupDetailsSuccess> {
@@ -178,5 +203,15 @@ export class GroupService {
         const message = `Bạn được mời vào nhóm ${group.name}`;
         const notification = await this.notificationService.createInviteNotification(senderId, receiverId, groupId, message);
         return NotificationSuccess.fromModel(notification);
+    }
+
+    async countTask(groupId: number) :Promise<CountTask>{
+        const group = await this.groupRepo.findById(groupId);
+        if(!group) throw new BaseException({
+            code: ErrorCode.GROUP_NOT_FOUND,
+            message: 'Group is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        return this.taskRepository.countTask(groupId);
     }
 }

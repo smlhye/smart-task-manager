@@ -110,3 +110,43 @@ export class UserResponseDto {
     })
     avatarUrl?: string;
 }
+
+export class ForgotPassword {
+    @ApiProperty({ example: 'user@example.com' })
+    @IsEmail({}, { message: 'Invalid email address' })
+    @IsNotEmpty({ message: 'Email is required' })
+    @Transform(({ value }) => value.toLowerCase().trim())
+    email: string;
+}
+
+export class ChangedPassword {
+    @ApiProperty({ example: 'user@example.com' })
+    @IsEmail({}, { message: 'Invalid email address' })
+    @IsNotEmpty({ message: 'Email is required' })
+    @Transform(({ value }) => value.toLowerCase().trim())
+    email: string;
+
+    @ApiProperty({
+        example: "Admin123456",
+    })
+    @IsString()
+    @MinLength(8, { message: 'Password must be at least 8 characters' })
+    @MaxLength(32, { message: 'Password must not exceed 32 characters' })
+    @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/, { message: 'Password must include uppercase, lowercase and number' })
+    password: string;
+}
+
+export class ChangedPasswordForm {
+    @ApiProperty({ example: 'Admin123456' })
+    @IsString()
+    oldPassword: string;
+    @ApiProperty({
+        example: "Admin123456",
+    })
+
+    @IsString()
+    @MinLength(8, { message: 'Password must be at least 8 characters' })
+    @MaxLength(32, { message: 'Password must not exceed 32 characters' })
+    @Matches(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/, { message: 'Password must include uppercase, lowercase and number' })
+    password: string;
+}

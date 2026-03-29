@@ -28,6 +28,11 @@ export const ConfigSchema = z.object({
     WS_CORS_ORIGIN: z.string().default('http://localhost:3001'),
     WS_PING_INTERVAL: z.coerce.number().default(10000),
     WS_PING_TIMEOUT: z.coerce.number().default(5000),
+
+    SMTP_HOST: z.string().default('smtp.gmail.com'),
+    SMTP_PORT: z.coerce.number().default(587),
+    SMTP_USER: z.email(),
+    SMTP_PASS: z.string().min(8),
 })
 
 export type ConfigType = z.infer<typeof ConfigSchema>

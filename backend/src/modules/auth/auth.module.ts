@@ -12,10 +12,16 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
 import { RevokedTokenCleanupService } from "./services/revoked-token-cleanup.service";
 import { RevokedTokenRepository } from "./repositories/revoked-token.repository";
 import { UserRepository } from "../user/repositories/user.repository";
+import { RedisConfig } from "../redis/services/redis.service";
+import { OtpService } from "./services/otp.service";
+import { MailService } from "../mail/service/mail.service";
 
 @Module({
     imports: [PrismaModule],
-    providers: [AuthService, UserRepository, JwtService, TokenService, AppConfig, SessionRepository, SessionCleanupService, JwtStrategy, RevokedTokenCleanupService, RevokedTokenRepository],
+    providers: [AuthService, UserRepository, JwtService, TokenService,
+        AppConfig, SessionRepository, SessionCleanupService, JwtStrategy,
+        RevokedTokenCleanupService, RevokedTokenRepository, RedisConfig, OtpService,
+        MailService],
     controllers: [AuthController],
     exports: [AuthService],
 })

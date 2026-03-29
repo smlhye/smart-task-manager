@@ -25,7 +25,7 @@ export default function TaskDrawer({ groupId, toggle, onOpenModal }: Props) {
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                <StatsSection />
+                <StatsSection groupId={groupId}/>
                 <MembersSection onOpenModal={onOpenModal} groupId={groupId}/>
             </div>
         </div>

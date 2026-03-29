@@ -120,3 +120,21 @@ export class TaskItemSuccess {
         })
     }
 }
+
+export class CountTask {
+    @ApiProperty({ example: 10, description: "Total number of tasks" })
+    total: number;
+
+    @ApiProperty({ example: 4, description: "Number of tasks currently in progress" })
+    inProgress: number;
+
+    @ApiProperty({ example: 3, description: "Number of completed tasks" })
+    done: number;
+
+    @ApiProperty({ example: 2, description: "Number of overdue tasks (past deadline and not completed)" })
+    overdue: number;
+
+    constructor(partial: Partial<CountTask>) {
+        Object.assign(this, partial);
+    }
+}

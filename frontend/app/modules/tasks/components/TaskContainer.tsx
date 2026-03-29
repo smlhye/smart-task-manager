@@ -13,6 +13,7 @@ type Props = {
 export default function TaskContainer({ groupId }: Props) {
     const router = useRouter();
     const setMethod = useTaskStore((s) => s.setMethod);
+    const reset = useTaskStore((s) => s.reset);
     const setGroupId = useTaskStore((s) => s.setGroupId);
     const { tasks: pendingTasks, loadMore: pendingLoadMore, hasMore: pendingHasMore, loadingMore: pendingLoadingMore } = useTasksPending(groupId, {
         take: 20,
@@ -25,6 +26,7 @@ export default function TaskContainer({ groupId }: Props) {
     });
 
     const handleCreateClick = () => {
+        reset();
         setMethod('CREATE');
         setGroupId(groupId);
         router.push(`${groupId}/tasks`);

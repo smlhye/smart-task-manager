@@ -9,6 +9,7 @@ export const notificationSchema = z.object({
     status: z.string(),
     isRead: z.boolean(),
     groupId: z.number(),
+    taskId: z.number(),
     createdAt: z.string(),
 })
 

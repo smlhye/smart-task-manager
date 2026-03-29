@@ -9,6 +9,9 @@ import { GroupModule } from "./modules/group/group.module";
 import { UserModule } from "./modules/user/user.module";
 import { NotificationModule } from "./modules/notification/notification.module";
 import { TaskModule } from "./modules/task/task.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
+import { RedisModule } from "./modules/redis/redis.module";
+import { MailModule } from "./modules/mail/mail.module";
 
 @Module({
     imports: [
@@ -16,7 +19,8 @@ import { TaskModule } from "./modules/task/task.module";
             isGlobal: true,
             validate: (env) => ConfigSchema.parse(env),
         }),
-        HealthModule, AuthModule, GroupModule, UserModule, NotificationModule, TaskModule,
+        EventEmitterModule.forRoot(),
+        HealthModule, AuthModule, GroupModule, UserModule, NotificationModule, TaskModule, RedisModule, MailModule,
         ScheduleModule.forRoot(),
     ],
     providers: [AppConfig],

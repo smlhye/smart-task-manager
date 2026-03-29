@@ -4,7 +4,6 @@ import { GroupRole, NotificationStatus, NotificationType, Prisma } from "@prisma
 import { WebsocketGateway } from "src/websocket/websocket.gateway";
 import { FilterNotification } from "../dto/request.dto";
 import { NotificationItemSuccess, NotificationSuccess } from "../dto/response.dto";
-import { UserRepository } from "src/modules/user/repositories/user.repository";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import { GroupRepository } from "src/modules/group/repositories/group.repository";
@@ -48,6 +47,36 @@ export class NotificationService {
         };
         const notification = await this.notificationRepo.create(data);
         const notificationItemSuccess = NotificationItemSuccess.fromModel(notification, `${notification.sender?.firstName} ${notification.sender?.lastName}`, notification.group?.name);
+        this.wsGateway.emitNotification(receiverId, notificationItemSuccess)
+        return notification;
+    }
+
+    async createNotification(
+        receiverId: number,
+        groupId: number,
+        message: string,
+        taskId: number,
+    ) {
+        const data: Prisma.NotificationCreateInput = {
+            user: {
+                connect: {
+                    id: receiverId,
+                }
+            },
+            group: {
+                connect: {
+                    id: groupId
+                }
+            },
+            taskId: taskId,
+            senderName: 'Thông báo hệ thống',
+            message,
+            type: NotificationType.INFORMATION,
+            status: NotificationStatus.PENDING,
+            isRead: false
+        };
+        const notification = await this.notificationRepo.create(data);
+        const notificationItemSuccess = NotificationItemSuccess.fromModel(notification, 'Thông báo hệ thống', notification.group?.name);
         this.wsGateway.emitNotification(receiverId, notificationItemSuccess)
         return notification;
     }

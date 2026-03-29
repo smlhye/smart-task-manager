@@ -3,6 +3,7 @@ import { Prisma, Task, TaskStatus } from "@prisma/client";
 import { QueryOptions } from "src/common/types/query-options";
 import { PrismaService } from "src/prisma/prisma.service";
 import { FilterTask } from "../dto/request.dto";
+import { CountTask } from "../dto/response.dto";
 
 type TaskQueryOptions = QueryOptions<Prisma.TaskSelect, Prisma.TaskInclude>;
 
@@ -12,10 +13,32 @@ export class TaskRepository {
         private readonly prisma: PrismaService,
     ) { }
 
-    async create(data: Prisma.TaskCreateInput, options?: TaskQueryOptions): Promise<Task> {
+    async create(data: Prisma.TaskCreateInput): Promise<Task & { group: { name: string } }> {
         return this.prisma.task.create({
             data,
-            ...options,
+            include: {
+                group: {
+                    select: {
+                        name: true,
+                    }
+                }
+            },
+        })
+    }
+
+    async update(taskId: number, data: Prisma.TaskUpdateInput, options?: TaskQueryOptions): Promise<Task & { group: { name: string } }> {
+        return this.prisma.task.update({
+            where: {
+                id: taskId,
+            },
+            data,
+            include: {
+                group: {
+                    select: {
+                        name: true,
+                    }
+                }
+            },
         })
     }
 
@@ -90,5 +113,55 @@ export class TaskRepository {
             },
             take,
         })
+    }
+
+    async countTask(groupId: number): Promise<CountTask> {
+        const now = new Date();
+        const [
+            total,
+            inProgress,
+            done,
+            overdue,
+        ] = await Promise.all([
+            this.prisma.task.count({
+                where: {
+                    groupId,
+                    deletedAt: null,
+                },
+            }),
+            this.prisma.task.count({
+                where: {
+                    groupId,
+                    status: "IN_PROGRESS",
+                    deletedAt: null,
+                },
+            }),
+            this.prisma.task.count({
+                where: {
+                    groupId,
+                    status: "DONE",
+                    deletedAt: null,
+                },
+            }),
+            this.prisma.task.count({
+                where: {
+                    groupId,
+                    deadline: {
+                        lt: now,
+                    },
+                    status: {
+                        not: "DONE"
+                    },
+                    deletedAt: null,
+                },
+            }),
+        ]);
+
+        return new CountTask({
+            total,
+            inProgress,
+            done,
+            overdue,
+        });
     }
 }

@@ -1,15 +1,20 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import * as bcrypt from 'bcryptjs';
 import { mapDtoToUser, mapUserToDto } from "../auth.mapper";
 import { TokenService } from "./token.service";
 import { SessionRepository } from "../repositories/session.repository";
-import { LoginDto, RegisterDto, UserResponseDto } from "../dto/request.dto";
+import { ChangedPassword, ChangedPasswordForm, LoginDto, RegisterDto, UserResponseDto } from "../dto/request.dto";
 import { LoginResponseClientDto, LoginResponseDto, RegisterUserResponseDto } from "../dto/response.dto";
 import { RevokedTokenRepository } from "../repositories/revoked-token.repository";
 import { createHash } from "crypto";
 import { UserRepository } from "src/modules/user/repositories/user.repository";
+import { OtpService } from "./otp.service";
+import { FindUserNotInGroupByEmail, VerifyOtp } from "src/modules/user/dto/request.dto";
+import { Prisma } from "@prisma/client";
+import { MailService } from "src/modules/mail/service/mail.service";
+import { otpEmailTemplate } from "src/templates/otpMail.template";
 
 @Injectable()
 export class AuthService {
@@ -17,7 +22,9 @@ export class AuthService {
         private readonly userRepo: UserRepository,
         private readonly tokenService: TokenService,
         private readonly sessionRepo: SessionRepository,
-        private readonly revokedTokenRepo: RevokedTokenRepository
+        private readonly revokedTokenRepo: RevokedTokenRepository,
+        private readonly otpService: OtpService,
+        private readonly mailService: MailService,
     ) { }
 
     async register(dto: RegisterDto) {
@@ -269,5 +276,63 @@ export class AuthService {
         await this.sessionRepo.revokedByUserId(user.id);
         await this.revokedTokenRepo.revokedAllByUserId(user.id);
         return { message: 'Logged out from all devices successfully' };
+    }
+
+    async sendOtp(find: FindUserNotInGroupByEmail): Promise<void> {
+        const otp = await this.otpService.sendOtp(find.email);
+        const user = await this.userRepo.findByEmail(find.email);
+        let name: string | undefined;
+        if (user) {
+            name = `${user.firstName} ${user.lastName}`;
+        }
+        const html = otpEmailTemplate(otp, name);
+        this.mailService.sendMail(find.email, 'Mã OTP của bạn', html);
+    }
+
+    async verifyOtp(data: VerifyOtp): Promise<void> {
+        await this.otpService.verifyOtp(data.email, data.otp);
+    }
+
+    async changePassword(data: ChangedPassword): Promise<void> {
+        const { email, password } = data;
+        const user = await this.userRepo.findByEmail(email);
+        if (!user) throw new BaseException({
+            code: ErrorCode.USER_NOT_FOUND,
+            message: 'User is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const updateData: Prisma.UserUpdateInput = {
+            password: hashedPassword,
+        }
+        await this.userRepo.update(user.id, updateData);
+    }
+
+    async changePasswordForm(userId: number, data: ChangedPasswordForm): Promise<void> {
+        try {
+            const { oldPassword, password } = data;
+        const user = await this.userRepo.findById(userId);
+        if (!user) throw new BaseException({
+            code: ErrorCode.USER_NOT_FOUND,
+            message: 'User is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        const isValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isValid) {
+            throw new BaseException({
+                code: ErrorCode.AUTH_INVALID_CREDENTIALS,
+                message: 'Invalid credentials',
+                status: HttpStatus.UNAUTHORIZED,
+            })
+        }
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const updateData: Prisma.UserUpdateInput = {
+            password: hashedPassword,
+        }
+        await this.userRepo.update(user.id, updateData);
+        }catch(e) {
+            console.log(e);
+            if (e instanceof HttpException) throw e;
+        }
     }
 }

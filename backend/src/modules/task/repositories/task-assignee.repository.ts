@@ -33,4 +33,33 @@ export class TaskAssigneeRepository {
             }
         })
     }
+
+    async assignees(taskId: number) {
+        return this.prisma.taskAssignee.findMany({
+            where: {
+                taskId,
+            }
+        })
+    }
+
+    async deleteAssignees(userIds: number[]) {
+        return this.prisma.taskAssignee.deleteMany({
+            where: {
+                userId: {
+                    in: userIds,
+                }
+            }
+        })
+    }
+
+    async deleteAssigned(userId: number, taskId: number) {
+        return this.prisma.taskAssignee.delete({
+            where: {
+                taskId_userId: {
+                    userId,
+                    taskId
+                }
+            }
+        })
+    }
 }

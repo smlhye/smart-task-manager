@@ -22,6 +22,14 @@ export class AppConfig {
         return this.configService.getOrThrow<string>('FRONTEND_URL');
     }
 
+    get REDIS_URL(): string {
+        return this.configService.getOrThrow<string>('REDIS_URL');
+    }
+
+    get CACHE_TTL(): number {
+        return this.configService.getOrThrow<number>('CACHE_TTL');
+    }
+
     get RATE_LIMIT_MAX(): number {
         return this.configService.getOrThrow<number>('RATE_LIMIT_MAX');
     }
@@ -64,5 +72,21 @@ export class AppConfig {
 
     get WS_PING_TIMEOUT(): number {
         return this.configService.getOrThrow<number>('WS_PING_TIMEOUT');
+    }
+
+    get SMTP_HOST(): string {
+        return this.configService.getOrThrow<string>('SMTP_HOST');
+    }
+
+    get SMTP_PORT(): number {
+        return this.configService.getOrThrow<number>('SMTP_PORT');
+    }
+
+    get SMTP_USER(): string {
+        return this.configService.getOrThrow<string>('SMTP_USER');
+    }
+
+    get SMTP_PASS(): string {
+        return this.configService.getOrThrow<string>('SMTP_PASS');
     }
 }

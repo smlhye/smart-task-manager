@@ -4,7 +4,7 @@ import { FilterGroup, filterGroupSchema, groupCreatedSchema, GroupCreateType, gr
 import { createApiResponseSchema } from "@/app/lib/api-schema";
 import { ErrorCode } from "@/app/shared/contants/error-code";
 import { notificationSchema } from "../../notification/schemas/notification.schema";
-import { filterMemberSearchSchema, FilterMemberSearchType, memberSearchResponseSchema } from "../../users/schemas/user.schema";
+import { filterMemberSearchSchema, FilterMemberSearchType, memberSearchResponseSchema, memberSearchResultSchema } from "../../users/schemas/user.schema";
 import { createdTaskSchema, CreateTaskType, filterTaskSchema, FilterTaskType, taskListSchema } from "../../tasks/schemas/task.schema";
 
 export const groupService = {
@@ -15,13 +15,9 @@ export const groupService = {
     },
 
     getMemberOfGroupApi: async (groupId: number, filter?: FilterMemberSearchType) => {
-        try {
-            const parsed = filterMemberSearchSchema.parse(filter ?? {});
-            const res = await http.get(`groups/${groupId}/members`, { params: parsed });
-            return parseApiResponse(createApiResponseSchema(memberSearchResponseSchema), res.data);
-        } catch (e) {
-            console.log(e);
-        }
+        const parsed = filterMemberSearchSchema.parse(filter ?? {});
+        const res = await http.get(`groups/${groupId}/members`, { params: parsed });
+        return parseApiResponse(createApiResponseSchema(memberSearchResponseSchema), res.data);
     },
 
     getTaskPending: async (groupId: number, filter?: FilterTaskType) => {
@@ -82,6 +78,27 @@ export const groupService = {
                     throw new Error('Nhóm này không tồn tại. Vui lòng chọn nhóm khác hoặc tạo nhóm mới');
                 }
                 if (data.error?.code === ErrorCode.PERMISSION_DENIED) {
+                    throw new Error('Bạn không đủ quyền, vui lòng liên hệ admin nhóm');
+                }
+                throw new Error("Không thể kết nối server");
+            }
+        }
+    },
+
+    getMember: async (groupId: number) => {
+        try {
+            const res = await http.get(`groups/${groupId}/members/me`);
+            return parseApiResponse(createApiResponseSchema(memberSearchResultSchema), res.data);
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                if (data.error?.code === ErrorCode.GROUP_NOT_FOUND) {
+                    throw new Error('Nhóm này không tồn tại. Vui lòng chọn nhóm khác hoặc tạo nhóm mới');
+                }
+                if (data.error?.code === ErrorCode.PERMISSION_DENIED) {
+                    throw new Error('Bạn không đủ quyền, vui lòng liên hệ admin nhóm');
+                }
+                if (data.error?.code === ErrorCode.GROUP_MEMBER_NOT_FOUND) {
                     throw new Error('Bạn không đủ quyền, vui lòng liên hệ admin nhóm');
                 }
                 throw new Error("Không thể kết nối server");

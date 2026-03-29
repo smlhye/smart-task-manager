@@ -10,9 +10,9 @@ export function Badge({
     const variants: Record<Variant, string> = {
         default:
             "bg-[rgb(var(--color-secondary))] text-[rgb(var(--color-secondary-foreground))]",
-        success: "bg-green-100 text-green-700",
-        warning: "bg-yellow-100 text-yellow-700",
-        danger: "bg-red-100 text-red-700",
+        success: "bg-green-500/90 text-white",
+        warning: "bg-yellow-500/90 text-white",
+        danger: "bg-red-500/90 text-white",
     };
 
     return (
