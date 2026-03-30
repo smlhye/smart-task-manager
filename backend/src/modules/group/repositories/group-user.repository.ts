@@ -18,6 +18,19 @@ export class GroupUserRepository {
         })
     }
 
+    async update(userId: number, groupId:number, data: Prisma.GroupUserUpdateInput, options?: GroupUserQueryOptions) {
+        return this.prisma.groupUser.update({
+            where: {
+                userId_groupId: {
+                    userId,
+                    groupId,
+                },
+            },
+            data,
+            ...options,
+        })
+    }
+
     async getRole(userId: number, groupId: number) {
         return this.prisma.groupUser.findUnique({
             where: {

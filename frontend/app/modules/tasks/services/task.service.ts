@@ -1,5 +1,5 @@
 import http from "@/app/services/http";
-import { countTaskSchema, createdTaskSchema, CreateTaskType, TaskFormType } from "../schemas/task.schema";
+import { countTaskSchema, countTaskUserSchema, createdTaskSchema, CreateTaskType, filterTaskSchema, FilterTaskType, TaskFormType, taskListSchema, taskRecentSchema, tasksRecentSchema } from "../schemas/task.schema";
 import { parseApiResponse } from "@/app/lib/api-parser";
 import { createApiResponseSchema } from "@/app/lib/api-schema";
 import { ErrorCode } from "@/app/shared/contants/error-code";
@@ -23,7 +23,6 @@ export const taskService = {
 
     findTaskById: async (groupId: number, taskId: number) => {
         try {
-            console.log("XIN CHÀO HELLO");
             const res = await http.get(`groups/${groupId}/tasks/${taskId}`);
             return parseApiResponse(createApiResponseSchema(createdTaskSchema), res.data);
         } catch (err: any) {
@@ -73,5 +72,59 @@ export const taskService = {
             }
             throw new Error("Không thể kết nối server");
         }
-    }
+    },
+
+    getTaskPending: async (filter?: FilterTaskType) => {
+        const parsed = filterTaskSchema.parse(filter ?? {});
+        const res = await http.get(`tasks/pending`, { params: parsed });
+        return parseApiResponse(createApiResponseSchema(taskListSchema), res.data);
+    },
+
+    getTaskInProgress: async (filter?: FilterTaskType) => {
+        const parsed = filterTaskSchema.parse(filter ?? {});
+        const res = await http.get(`tasks/in-progress`, { params: parsed });
+        return parseApiResponse(createApiResponseSchema(taskListSchema), res.data);
+    },
+
+    getTaskDone: async (filter?: FilterTaskType) => {
+        const parsed = filterTaskSchema.parse(filter ?? {});
+        const res = await http.get(`tasks/done`, { params: parsed });
+        return parseApiResponse(createApiResponseSchema(taskListSchema), res.data);
+    },
+
+    countTaskUserApi: async () => {
+        try {
+            const res = await http.get(`tasks/count`);
+            return parseApiResponse(createApiResponseSchema(countTaskUserSchema), res.data);
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                if(data.error?.code === ErrorCode.AUTH_UNAUTHORIZED) {
+                    throw new Error("Vui lòng đăng nhập")
+                }
+                if(data.error?.code === ErrorCode.USER_NOT_FOUND) {
+                    throw new Error("Có lỗi xảy ra, vui lòng thử lại")
+                }
+            }
+            throw new Error("Không thể kết nối server");
+        }
+    },
+
+    getRecentTasksApi: async () => {
+        try {
+            const res = await http.get(`tasks/recent`);
+            return parseApiResponse(createApiResponseSchema(tasksRecentSchema), res.data);
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                if(data.error?.code === ErrorCode.AUTH_UNAUTHORIZED) {
+                    throw new Error("Vui lòng đăng nhập")
+                }
+                if(data.error?.code === ErrorCode.USER_NOT_FOUND) {
+                    throw new Error("Có lỗi xảy ra, vui lòng thử lại")
+                }
+            }
+            throw new Error("Không thể kết nối server");
+        }
+    },
 }

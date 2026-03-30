@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Priority, TaskStatus } from "@prisma/client";
 import { Type } from "class-transformer";
-import { IsArray, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, Min } from "class-validator";
 
 export class CreateTask {
     @ApiProperty({ example: 'Thiết kế UI trang Dashboard', description: 'Title' })
@@ -61,7 +61,24 @@ export class UpdateTask {
     }
 }
 
+export enum TaskFilter {
+    ALL = "ALL",
+    ACTIVE = "ACTIVE",
+    OVERDUE = "OVERDUE",
+}
+
 export class FilterTask {
+    @ApiProperty({
+        name: 'filter',
+        required: false,
+        enum: TaskFilter,
+        example: TaskFilter.ALL,
+        description: 'Filter tasks: ALL | ACTIVE | OVERDUE',
+    })
+    @IsOptional()
+    @IsEnum(TaskFilter)
+    filter?: TaskFilter;
+
     @ApiProperty({
         name: 'take',
         required: false,

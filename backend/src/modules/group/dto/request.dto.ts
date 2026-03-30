@@ -2,6 +2,7 @@ import { ApiOperation, ApiProperty } from "@nestjs/swagger";
 import { Prisma } from "@prisma/client";
 import { Transform, Type } from "class-transformer";
 import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import z, { string } from "zod";
 
 export class CreateGroup {
     @ApiProperty({ example: 'NHÓM DEV - BACKEND' })

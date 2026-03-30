@@ -116,6 +116,7 @@ model ActivityLog {
 
 enum GroupRole {
   ADMIN
+  MANAGER
   MEMBER
   VIEWER
 }

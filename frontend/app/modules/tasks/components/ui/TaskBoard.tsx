@@ -1,21 +1,31 @@
 import { cn } from "@/app/lib/cn";
 import { CreatedTaskType, TaskStatusType } from "../../schemas/task.schema";
 import { Badge, Button, Variant } from "@/app/shared/components/ui";
-import { Plus } from "lucide-react";
+import { Filter, Plus } from "lucide-react";
 import TaskItem from "./TaskItem";
 import { useInfiniteScroll } from "@/app/shared/hooks/useInfiniteScroll";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useMember } from "@/app/modules/group/hooks/useMember";
+import { FilterDropdown } from "../FilterDropdown";
+
+type FilterTaskType = "ALL" | "ACTIVE" | "OVERDUE";
+
+const labelFilter: Record<FilterTaskType, string> = {
+    ALL: 'Tất cả',
+    ACTIVE: 'Còn hạn',
+    OVERDUE: 'Quá hạn',
+}
 
 type Props = {
     status: TaskStatusType;
     tasks: CreatedTaskType[];
     onCreateTask?: () => void;
-    onTaskClick?: () => void;
     loadMore: () => void,
     loadingMore: boolean,
     hasMore?: boolean,
-    groupId: number,
+    groupId?: number,
+    onFilterChange?: (filter: string) => void;
+    filterValue?: FilterTaskType;
 }
 
 const STATUS_TITLES: Record<TaskStatusType, string> = {
@@ -36,7 +46,7 @@ const PRIORITY_CLASSES: Record<string, string> = {
     LOW: "bg-green-500",
 };
 
-export default function TaskBoard({ loadMore, hasMore, loadingMore, status, tasks, onCreateTask, onTaskClick, groupId }: Props) {
+export default function TaskBoard({ loadMore, hasMore, loadingMore, status, tasks, onCreateTask, groupId, onFilterChange, filterValue = 'ALL' }: Props) {
     const title = STATUS_TITLES[status] ?? "Không xác định";
     const variant = STATUS_VARIANTS[status] ?? "default";
     const { data } = useMember({ groupId });
@@ -48,7 +58,7 @@ export default function TaskBoard({ loadMore, hasMore, loadingMore, status, task
         root: containerRef.current,
         threshold: 1,
     });
-    if(!data) return <>Loading...</>;
+    if (!data && groupId) return <>Loading...</>;
     return (
         <div className="flex w-full h-full overflow-x-auto">
             <div key={status} className="flex-1 bg-[rgb(var(--color-muted))] rounded-[var(--radius)] flex flex-col">
@@ -60,22 +70,47 @@ export default function TaskBoard({ loadMore, hasMore, loadingMore, status, task
                             {title}
                         </h3>
                     </Badge>
-                    {status === 'PENDING' && data.role === "ADMIN" ? (
-                        <Button
-                            onClick={onCreateTask}
-                            variant="ghost"
-                            size="sm"
-                            className={cn(
-                                "h-8 w-8 p-0 hover:bg-[rgb(var(--color-muted))]",
-                            )}
-                        >
-                            <Plus className="w-4 h-4 text-[rgb(var(--color-muted-foreground))]" />
-                        </Button>
-                    ) : (
-                        <div className="w-8 h-8"></div>
-                    )}
+                    <div className="flex gap-1">
+                        {(status === 'PENDING' || status === 'IN_PROGRESS') ? (
+                            <FilterDropdown
+                                onSelectFilter={onFilterChange}
+                                trigger={
+                                    <div className="flex gap-1 items-center">
+                                        <span className="text-xs font-medium">{filterValue && labelFilter[filterValue]}</span>
+                                        <Button
+                                            variant="ghost"
+                                            className={cn(
+                                                "w-7 h-7 p-0",
+                                                "flex items-center justify-center",
+                                                "rounded-md",
+                                                "text-gray-500",
+                                                "hover:bg-[rgb(var(--color-muted))]",
+                                                "hover:text-gray-800",
+                                                "transition"
+                                            )}
+                                        >
+                                            <Filter className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                }
+                            />
+                        ) : <></>}
+                        {status === 'PENDING' && (data?.role === "ADMIN" || data?.role === "MANAGER") ? (
+                            <Button
+                                onClick={onCreateTask}
+                                variant="ghost"
+                                size="sm"
+                                className={cn(
+                                    "h-8 w-8 p-0 hover:bg-[rgb(var(--color-muted))]",
+                                )}
+                            >
+                                <Plus className="w-4 h-4 text-[rgb(var(--color-muted-foreground))]" />
+                            </Button>
+                        ) : (<></>
+                        )}
+                    </div>
                 </div>
-                <div className="flex-1 flex flex-col gap-3 overflow-y-auto scrollbar-hidden">
+                <div className="flex-1 px-1 flex flex-col gap-3 overflow-y-auto scrollbar-hidden">
                     {tasks
                         .map((task, index) => (
                             <TaskItem groupId={groupId} index={index} key={task.id} task={task} />

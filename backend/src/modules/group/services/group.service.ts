@@ -5,8 +5,8 @@ import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import { CreateGroupSuccess, GroupDetailsSuccess, GroupSuccess } from "../dto/response.dto";
 import { GroupUserRepository } from "../repositories/group-user.repository";
-import { GroupRole, TaskStatus } from "@prisma/client";
-import { FindUserNotInGroupByEmail } from "src/modules/user/dto/request.dto";
+import { GroupRole, Prisma, TaskStatus } from "@prisma/client";
+import { ChangeRole, FindUserNotInGroupByEmail } from "src/modules/user/dto/request.dto";
 import { FilterMemberSearch, MemberSearchResponse, MemberSearchResultDto, UserSearchResultDto } from "src/modules/user/dto/response.dto";
 import { UserRepository } from "src/modules/user/repositories/user.repository";
 import { NotificationService } from "src/modules/notification/services/notification.service";
@@ -83,13 +83,13 @@ export class GroupService {
 
     async getMember(groupId: number, userId: number): Promise<MemberSearchResultDto> {
         const group = await this.groupRepo.findById(groupId);
-        if(!group) throw new BaseException({
+        if (!group) throw new BaseException({
             code: ErrorCode.GROUP_NOT_FOUND,
             message: 'Group is not found',
             status: HttpStatus.NOT_FOUND,
         })
         const isMember = await this.groupRepo.isMember(groupId, userId);
-        if(!isMember) throw new BaseException({
+        if (!isMember) throw new BaseException({
             code: ErrorCode.GROUP_MEMBER_NOT_FOUND,
             message: 'You is not member of group',
             status: HttpStatus.NOT_FOUND,
@@ -205,13 +205,37 @@ export class GroupService {
         return NotificationSuccess.fromModel(notification);
     }
 
-    async countTask(groupId: number) :Promise<CountTask>{
+    async countTask(groupId: number): Promise<CountTask> {
         const group = await this.groupRepo.findById(groupId);
-        if(!group) throw new BaseException({
+        if (!group) throw new BaseException({
             code: ErrorCode.GROUP_NOT_FOUND,
             message: 'Group is not found',
             status: HttpStatus.NOT_FOUND,
         })
         return this.taskRepository.countTask(groupId);
+    }
+
+    async changeRole(groupId: number, data: ChangeRole) {
+        const group = await this.groupRepo.findById(groupId);
+        if (!group) throw new BaseException({
+            code: ErrorCode.GROUP_NOT_FOUND,
+            message: 'Group is not found',
+            status: HttpStatus.NOT_FOUND,
+        })
+        const isMember = await this.groupRepo.isMember(groupId, data.userId);
+        if (!isMember) throw new BaseException({
+            code: ErrorCode.GROUP_MEMBER_NOT_FOUND,
+            message: 'You is not member of group',
+            status: HttpStatus.NOT_FOUND,
+        });
+        const update: Prisma.GroupUserUpdateInput = {
+            role: data.role,
+        }
+        await this.groupUserRepo.update(data.userId, groupId, update);
+    }
+
+    async getRoles() {
+        const roles = Object.values(GroupRole);
+        return { roles };
     }
 }

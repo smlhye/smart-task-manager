@@ -9,7 +9,7 @@ type TaskStore = {
 
     groupId: number | null;
 
-    setGroupId: (id: number) => void;
+    setGroupId: (id?: number) => void;
 
     setTask: (task: CreatedTaskType) => void;
     setMethod: (method: TaskMethod) => void;
@@ -24,7 +24,7 @@ export const useTaskStore = create<TaskStore>((set) => ({
     isDirty: false,
     groupId: null,
 
-    setGroupId: (id: number) =>
+    setGroupId: (id?: number) =>
         set(() => ({
             groupId: id,
         })),

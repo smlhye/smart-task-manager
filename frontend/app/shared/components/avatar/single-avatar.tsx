@@ -11,11 +11,11 @@ export default function SingleAvatar({ name }: { name: string }) {
     const avatarColor = stringToColor(name[0]);
     return (
         <div
-            className="w-8 h-8 flex items-center justify-center text-xs font-semibold rounded-full border-2 border-[rgb(var(--color-card))]"
+            className="w-8 h-8 flex items-center justify-center text-xs font-semibold rounded-full"
             style={{ backgroundColor: avatarColor, color: "white" }}
             title={name}
         >
-            {name[0]}
+            {name.split(' ')[name.split(' ').length - 1][0]}
         </div>
     )
 }

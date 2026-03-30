@@ -77,3 +77,18 @@ export const inviteNotificationSchema = z.object({
 })
 
 export type InviteNotificationType = z.infer<typeof inviteNotificationSchema>
+
+export const changeRoleSchema = z.object({
+    userId: z
+        .number({ message: "userId is required" }),
+    role: z.string(),
+});
+
+export type ChangeRoleType = z.infer<typeof changeRoleSchema>;
+
+
+export const rolesSchema = z.object({
+    roles: z.array(z.string()),
+});
+
+export type RolesType = z.infer<typeof rolesSchema>;

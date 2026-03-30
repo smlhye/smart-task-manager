@@ -18,7 +18,6 @@ export const useMemberOfGroup = (groupId: number, filter?: FilterMemberSearchTyp
                 take,
                 cursor: pageParam as string | undefined,
             });
-            console.log('XIN CHÀO CÁC BẠN')
             return res?.data!;
         },
         getNextPageParam: (lastPage) => lastPage?.nextCursor ?? undefined,

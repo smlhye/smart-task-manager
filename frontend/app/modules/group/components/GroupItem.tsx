@@ -3,7 +3,7 @@ import { Button, Modal } from "@/app/shared/components/ui";
 import Link from "next/link";
 import { useState } from "react";
 import GroupUpdateForm from "./GroupUpdate";
-import { MoreHorizontal } from "lucide-react";
+import { Edit, MoreHorizontal } from "lucide-react";
 
 interface Group {
     id: number;
@@ -96,7 +96,7 @@ export default function GroupItem({ group, active, index }: GroupItemProps) {
                             "animate-scale-in"
                         )}
                     >
-                        <MoreHorizontal className="w-5 h-5 text-gray-600" />
+                        <Edit className="w-4 h-4 text-gray-600" />
                     </Button>
                 )}
             </Link>

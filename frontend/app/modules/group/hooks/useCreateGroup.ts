@@ -31,7 +31,7 @@ export const useCreateGroup = ({ onCloseModal }: Props) => {
 
             queryClient.invalidateQueries({
                 queryKey: ['my-groups'],
-            })
+            });
         },
         onError: (res) => {
             toast.error(res.message);

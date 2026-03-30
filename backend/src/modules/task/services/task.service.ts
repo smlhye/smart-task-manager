@@ -1,14 +1,13 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { TaskRepository } from "../repositories/task.repository";
 import { TaskAssigneeRepository } from "../repositories/task-assignee.repository";
-import { CreateTask, UpdateTask } from "../dto/request.dto";
+import { CreateTask, FilterTask, UpdateTask } from "../dto/request.dto";
 import { Priority, Prisma, TaskStatus } from "@prisma/client";
 import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
-import { CountTask, MemberAssigned, TaskCreatedSuccess } from "../dto/response.dto";
+import { CountTask, CountTaskUser, MemberAssigned, TaskCreatedSuccess, TaskItemSuccess, TaskRecentItem } from "../dto/response.dto";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { TaskChangedEvent } from "../events/task-changed.event";
-import { WebsocketGateway } from "src/websocket/websocket.gateway";
 
 @Injectable()
 export class TaskService {
@@ -168,5 +167,19 @@ export class TaskService {
 
     async countTask(groupId: number): Promise<CountTask> {
         return this.taskRepo.countTask(groupId);
+    }
+
+    async countTaskUser(userId: number): Promise<CountTaskUser> {
+        return this.taskRepo.countTaskUser(userId);
+    }
+
+    async getMyTasks(userId: number, filter: FilterTask, status: TaskStatus): Promise<TaskItemSuccess[]> {
+        const tasks = await this.taskRepo.getTaskUserIdAndStatus(userId, filter, status);
+        return tasks.map((item) => TaskItemSuccess.fromModel(item));
+    }
+
+    async getRecentTasks(userId: number): Promise<TaskRecentItem[]> {
+        const tasks = await this.taskRepo.getTaskRecent(userId);
+        return tasks.map((item) => TaskRecentItem.fromModel(item));
     }
 }

@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsString, Length } from "class-validator";
+import { GroupRole } from "@prisma/client";
+import { IsEmail, IsEnum, IsNumber, IsString, Length } from "class-validator";
 
 export class FindUserNotInGroupByEmail {
     @ApiProperty({
@@ -28,4 +29,23 @@ export class VerifyOtp {
     @IsString({ message: "OTP must be a string" })
     @Length(6, 6, { message: "OTP must be exactly 6 characters" })
     otp: string;
+}
+
+export class ChangeRole {
+    @ApiProperty({
+        description: "The ID of the user",
+        example: 1,
+        required: true,
+    })
+    @IsNumber({}, { message: "userId must be a number" })
+    userId: number;
+
+    @ApiProperty({
+        description: "The role assigned to the user",
+        enum: GroupRole,
+        example: GroupRole.ADMIN,
+        required: true,
+    })
+    @IsEnum(GroupRole, { message: "Invalid role value" })
+    role: GroupRole;
 }

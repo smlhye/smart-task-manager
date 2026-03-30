@@ -9,8 +9,11 @@ export const notificationService = {
         try {
             const parsed = filterGroupSchema.parse(filter ?? {});
             const res = await http.get('notifications', { params: parsed });
+            console.log(res.data);
+            
             return parseApiResponse(createApiResponseSchema(notificationListSchema), res.data);
         } catch (e) {
+            console.log(e)
             throw new Error('Không thể kết nối server');
         }
     },

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Query, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from "@nestjs/common";
 import { GroupService } from "./services/group.service";
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateGroupSuccess, GroupDetailsSuccess, GroupSuccess } from "./dto/response.dto";
@@ -13,7 +13,7 @@ import { BaseException } from "src/common/errors/base.exception";
 import { ErrorCode } from "src/common/errors/error-codes";
 import { GroupRoleGuard } from "./guards/group-role.guard";
 import { FilterMemberSearch, MemberSearchResponse, MemberSearchResultDto, UserSearchResultDto } from "../user/dto/response.dto";
-import { FindUserNotInGroupByEmail } from "../user/dto/request.dto";
+import { ChangeRole, FindUserNotInGroupByEmail } from "../user/dto/request.dto";
 import { SuccessResponseDto } from "src/common/schemas/success-response.dto";
 import { NotificationSuccess } from "../notification/dto/response.dto";
 import { TaskService } from "../task/services/task.service";
@@ -52,7 +52,7 @@ export class GroupController {
     @Put(':groupId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
     @ApiBearerAuth()
-    @HasGroupRole(GroupRole.ADMIN)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MANAGER)
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Update a group' })
     @ApiResponse({
@@ -94,9 +94,32 @@ export class GroupController {
         return this.groupService.getMyGroups(user.userId, filter);
     }
 
+    @Get('roles')
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Get roles' })
+    @ApiResponse({
+        status: 200,
+        description: 'Ok',
+        type: SuccessResponseDto<{ roles: string[] }>,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Group is not found',
+        type: ErrorResponseDto,
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Task is not found',
+        type: ErrorResponseDto,
+    })
+    async getRoles(
+    ): Promise<{ roles: string[] }> {
+        return this.groupService.getRoles();
+    }
+
     @Get(':groupId/members')
     @UseGuards(JwtAuthGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -115,7 +138,7 @@ export class GroupController {
 
     @Get(':groupId/tasks/pending')
     @UseGuards(JwtAuthGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -134,7 +157,7 @@ export class GroupController {
 
     @Get(':groupId/tasks/in-progress')
     @UseGuards(JwtAuthGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -153,7 +176,7 @@ export class GroupController {
 
     @Get(':groupId/tasks/done')
     @UseGuards(JwtAuthGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -172,7 +195,7 @@ export class GroupController {
 
     @Get(':groupId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.VIEWER, GroupRole.MEMBER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.VIEWER, GroupRole.MEMBER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -205,7 +228,7 @@ export class GroupController {
 
     @Get(':groupId/members/search')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -236,7 +259,7 @@ export class GroupController {
 
     @Get(':groupId/members/me')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
@@ -267,7 +290,7 @@ export class GroupController {
 
     @Post(':groupId/members/:receiverId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Send invitation to a user to join the group' })
@@ -286,7 +309,7 @@ export class GroupController {
 
     @Post(':groupId/tasks')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
-    @HasGroupRole(GroupRole.ADMIN)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Create a new task for a group' })
@@ -317,11 +340,11 @@ export class GroupController {
         return this.taskService.create(groupId, data);
     }
 
-    
+
 
     @Get(':groupId/tasks/count')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Count tasks in group' })
     @ApiResponse({
@@ -342,7 +365,7 @@ export class GroupController {
 
     @Get(':groupId/tasks/:taskId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.VIEWER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Find a task for a group by id' })
@@ -370,7 +393,7 @@ export class GroupController {
 
     @Put(':groupId/tasks/:taskId')
     @UseGuards(JwtAuthGuard, GroupRoleGuard)
-    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER)
+    @HasGroupRole(GroupRole.ADMIN, GroupRole.MEMBER, GroupRole.MANAGER)
     @ApiBearerAuth()
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Update a task for a group by id' })
@@ -395,5 +418,33 @@ export class GroupController {
         @Body() data: UpdateTask
     ): Promise<TaskCreatedSuccess> {
         return this.taskService.update(groupId, taskId, data);
+    }
+
+    @Patch(':groupId/roles')
+    @UseGuards(JwtAuthGuard, GroupRoleGuard)
+    @HasGroupRole(GroupRole.ADMIN)
+    @ApiBearerAuth()
+    @HttpCode(HttpStatus.OK)
+    @ApiOperation({ summary: 'Update role for user in group' })
+    @ApiResponse({
+        status: 200,
+        description: 'Ok',
+        type: SuccessResponseDto,
+    })
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
+        description: 'Group is not found',
+        type: ErrorResponseDto,
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Task is not found',
+        type: ErrorResponseDto,
+    })
+    async updateRole(
+        @Param('groupId', ParseIntPipe) groupId: number,
+        @Body() data: ChangeRole
+    ): Promise<void> {
+        return this.groupService.changeRole(groupId, data);
     }
 }   

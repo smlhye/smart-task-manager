@@ -28,6 +28,9 @@ export const createTaskSchema = z.object({
         .string({ message: "Vui lòng chọn deadline" })
         .refine((val) => !isNaN(Date.parse(val)), {
             message: "Hạn nộp không hợp lệ",
+        })
+        .refine((val) => new Date(val) > new Date(), {
+            message: "Hạn nộp phải lớn hơn thời gian hiện tại",
         }),
     assignees: z.array(z.number()).default([]),
 })
@@ -43,13 +46,15 @@ export const memberAssignedSchema = z.object({
 export const createdTaskSchema = z.object({
     id: z.number(),
     title: z.string(),
-    description: z.string(),
+    description: z.string().optional(),
     status: taskStatusSchema,
     priority: taskPrioritySchema,
     deadline: z.string(),
     assignees: z.array(memberAssignedSchema),
     createdAt: z.string(),
     updatedAt: z.string(),
+    groupId: z.number().optional(),
+    name: z.string().optional(),
 })
 
 export const taskListSchema = z.array(createdTaskSchema).default([]);
@@ -57,6 +62,7 @@ export const taskListSchema = z.array(createdTaskSchema).default([]);
 export type CreatedTaskType = z.input<typeof createdTaskSchema>;
 
 export const filterTaskSchema = z.object({
+    filter: z.enum(['ALL', 'ACTIVE', 'OVERDUE']).optional(),
     take: z.number().min(1).optional(),
     cursor: z.string().optional(),
 })
@@ -77,3 +83,29 @@ export const countTaskSchema = z.object({
 })
 
 export type CountTaskType = z.infer<typeof countTaskSchema>;
+
+export const countTaskUserSchema = z.object({
+    total: z.number(),
+    inProgress: z.number(),
+    done: z.number(),
+    pending: z.number(),
+    groups: z.number(),
+    overdue: z.number(),
+})
+export type CountTaskUserType = z.infer<typeof countTaskUserSchema>;
+
+export const taskRecentSchema = z.object({
+    id: z.number(),
+    title: z.string(),
+    description: z.string().optional(),
+    status: z.string(),
+    deadline: z.string(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    groupId: z.number(),
+    name: z.string(),
+})
+
+export const tasksRecentSchema = z.array(taskRecentSchema);
+export type TaskRecentType = z.infer<typeof taskRecentSchema>;
+export type TasksRecentType = z.infer<typeof tasksRecentSchema>;

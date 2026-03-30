@@ -5,20 +5,27 @@ import { useTasksInProgress } from "../../group/hooks/useTasksInProgress";
 import { useTasksDone } from "../../group/hooks/useTasksDone";
 import { useRouter } from "next/navigation";
 import { useTaskStore } from "../stores/task.store";
+import { useState } from "react";
 
 type Props = {
     groupId: number;
 }
+
+type FilterTaskType = "ALL" | "ACTIVE" | "OVERDUE";
 
 export default function TaskContainer({ groupId }: Props) {
     const router = useRouter();
     const setMethod = useTaskStore((s) => s.setMethod);
     const reset = useTaskStore((s) => s.reset);
     const setGroupId = useTaskStore((s) => s.setGroupId);
+    const [filterPending, setFilterPending] = useState<FilterTaskType>('ALL');
+    const [filterInProgress, setFilterInProgress] = useState<FilterTaskType>('ALL');
     const { tasks: pendingTasks, loadMore: pendingLoadMore, hasMore: pendingHasMore, loadingMore: pendingLoadingMore } = useTasksPending(groupId, {
+        filter: filterPending,
         take: 20,
     });
     const { tasks: inProgressTasks, loadMore: inProgressLoadMore, hasMore: inProgressHasMore, loadingMore: inProgressLoadingMore } = useTasksInProgress(groupId, {
+        filter: filterInProgress,
         take: 20,
     });
     const { tasks: doneTasks, loadMore: doneLoadMore, hasMore: doneHasMore, loadingMore: doneLoadingMore } = useTasksDone(groupId, {
@@ -43,9 +50,9 @@ export default function TaskContainer({ groupId }: Props) {
 
     return (
         <div className="flex gap-3 w-full h-full p-3 items-stretch overflow-x-auto">
-            <TaskBoard groupId={groupId} onCreateTask={handleCreateClick} loadMore={pendingLoadMore} hasMore={pendingHasMore} loadingMore={pendingLoadingMore} status={'PENDING'} tasks={pendingTasks} onTaskClick={() => { }} />
-            <TaskBoard groupId={groupId} loadMore={inProgressLoadMore} hasMore={inProgressHasMore} loadingMore={inProgressLoadingMore} status={'IN_PROGRESS'} tasks={inProgressTasks} onTaskClick={() => { }} />
-            <TaskBoard groupId={groupId} loadMore={doneLoadMore} hasMore={doneHasMore} loadingMore={doneLoadingMore} status={'DONE'} tasks={doneTasks} onTaskClick={() => { }} />
+            <TaskBoard filterValue={filterPending} onFilterChange={(filter) => setFilterPending(filter as FilterTaskType)} groupId={groupId} onCreateTask={handleCreateClick} loadMore={pendingLoadMore} hasMore={pendingHasMore} loadingMore={pendingLoadingMore} status={'PENDING'} tasks={pendingTasks} />
+            <TaskBoard filterValue={filterInProgress} onFilterChange={(filter) => setFilterInProgress(filter as FilterTaskType)} groupId={groupId} loadMore={inProgressLoadMore} hasMore={inProgressHasMore} loadingMore={inProgressLoadingMore} status={'IN_PROGRESS'} tasks={inProgressTasks} />
+            <TaskBoard groupId={groupId} loadMore={doneLoadMore} hasMore={doneHasMore} loadingMore={doneLoadingMore} status={'DONE'} tasks={doneTasks} />
         </div>
     );
 }

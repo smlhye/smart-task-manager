@@ -63,6 +63,10 @@ export const useTaskForm = ({ mode, groupId, data }: Props) => {
                 queryKey: ["tasks-pending"],
                 refetchType: "active",
             });
+            queryClient.invalidateQueries({
+                queryKey: ["tasks-pending-user"],
+                refetchType: "active",
+            });
             router.back();
         },
         onError: (err: any) => toast.error(err.message),
@@ -84,6 +88,18 @@ export const useTaskForm = ({ mode, groupId, data }: Props) => {
             });
             queryClient.invalidateQueries({
                 queryKey: ["tasks-done"],
+                refetchType: "active",
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["tasks-pending-user"],
+                refetchType: "active",                
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["tasks-in-progress-user"],
+                refetchType: "active",
+            });
+            queryClient.invalidateQueries({
+                queryKey: ["tasks-done-user"],
                 refetchType: "active",
             });
             router.back();

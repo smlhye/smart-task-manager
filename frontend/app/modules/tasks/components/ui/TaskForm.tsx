@@ -37,11 +37,30 @@ export default function TaskForm({ groupId }: Props) {
 
     if (!data) return <>Loading...</>
 
-    console.log(task);
+    const isOverDue = task?.status !== "DONE" && task?.deadline && new Date(task.deadline) < new Date();
 
-    const isExist = task?.assignees?.some(a => a.id == data.id);
+    if (isOverDue && (data.role !== "ADMIN" && data.role !== "MANAGER")) {
+        return (
+            <div className="flex items-start justify-center h-full">
+                <div className="max-w-md w-full bg-red-50 border border-red-200 rounded-lg p-4 flex gap-3">
+                    <InfoIcon className="w-5 h-5 text-red-500 mt-0.5" />
+                    <div className="flex flex-col gap-1">
+                        <h3 className="text-sm font-semibold text-red-600">
+                            Nhiệm vụ đã quá hạn
+                        </h3>
+                        <p className="text-xs text-red-500">
+                            Bạn không thể chỉnh sửa nhiệm vụ này. Vui lòng liên hệ quản lý hoặc admin.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
-    const isDisabled = data.role !== "ADMIN";
+    const isExist = task?.assignees?.some(a => a.id == data.id)
+        || (data.role === "ADMIN" || data.role === "MANAGER");
+
+    const isDisabled = (data.role !== "ADMIN" && data.role !== "MANAGER");
 
     const handleScroll = () => {
         if (scrollRef.current) {
@@ -56,37 +75,41 @@ export default function TaskForm({ groupId }: Props) {
             onSubmit={onSubmit}
             className="flex flex-col gap-3 h-full min-h-0"
         >
-            {/* HEADER */}
             <div
                 className={cn(
-                    "flex items-center gap-2 shrink-0 pb-3",
+                    "flex flex-col gap-2 shrink-0",
                     scrolled && "border-b"
                 )}
             >
-                <div className="flex items-center gap-1 flex-1">
-                    <InfoIcon className="w-4 h-4" />
-                    <h2 className="text-sm">Thông tin nhiệm vụ</h2>
-                </div>
-                {(isExist || data.role === "ADMIN") && (
-                    <Button type="submit" className="h-8 px-3 gap-2" isLoading={loading}>
-                        <Save className="w-4 h-4" />
-                        Lưu
-                    </Button>
+                {isOverDue && (data.role === "ADMIN" || data.role === "MANAGER") && (
+                    <div className="flex items-center gap-2 text-xs text-red-500 bg-red-50 border border-red-200 px-3 py-2 rounded-md">
+                        {/* <InfoIcon className="w-4 h-4" /> */}
+                        Nhiệm vụ này đã quá hạn. Bạn vẫn có thể chỉnh sửa.
+                    </div>
                 )}
+                <div className="flex items-center shrink-0 gap-2 mb-2">
+                    <div className="flex items-center gap-1 flex-1">
+                        <InfoIcon className="w-4 h-4" />
+                        <h2 className="text-sm">Thông tin nhiệm vụ</h2>
+                    </div>
+                    {(isExist || data.role === "ADMIN") && (
+                        <Button type="submit" className="h-8 px-3 gap-2" isLoading={loading}>
+                            <Save className="w-4 h-4" />
+                            Lưu
+                        </Button>
+                    )}
+                </div>
             </div>
-
-            {/* BODY */}
             <div
                 ref={scrollRef}
                 onScroll={handleScroll}
                 className="flex-1 min-h-0 overflow-y-auto scrollbar-hidden"
             >
                 <div className="flex flex-col gap-5 p-1">
-                    {/* TITLE */}
                     <div className="grid grid-cols-4 gap-4 items-start">
                         <p className="col-span-1 text-sm">Tiêu đề</p>
                         <div className="col-span-3 flex flex-col gap-1">
-                            <Input disabled={data.role !== "ADMIN"} placeholder="Nhập tiêu đề..." {...register("title")} />
+                            <Input disabled={isDisabled} placeholder="Nhập tiêu đề..." {...register("title")} />
                             {errors.title && (
                                 <p className="text-xs text-red-500">
                                     {errors.title.message}
@@ -94,13 +117,11 @@ export default function TaskForm({ groupId }: Props) {
                             )}
                         </div>
                     </div>
-
-                    {/* DESCRIPTION */}
                     <div className="grid grid-cols-4 gap-4 items-start">
                         <p className="col-span-1 text-sm">Mô tả nhiệm vụ</p>
                         <div className="col-span-3 flex flex-col gap-1">
                             <Textarea
-                                disabled={data.role !== "ADMIN"}
+                                disabled={isDisabled}
                                 placeholder="Nhập mô tả..."
                                 {...register("description")}
                             />
@@ -114,7 +135,7 @@ export default function TaskForm({ groupId }: Props) {
                     <div className="grid grid-cols-4 gap-4 items-start">
                         <p className="col-span-1 text-sm">Ngày hết hạn</p>
                         <div className="col-span-3 flex flex-col gap-1">
-                            <Input disabled={data.role !== "ADMIN"} type="datetime-local" {...register("deadline")} />
+                            <Input className={cn(isOverDue && "border-red-500 focus-visible:ring-red-500")} disabled={isDisabled} type="datetime-local" {...register("deadline")} />
                             {errors.deadline && (
                                 <p className="text-xs text-red-500">
                                     {errors.deadline.message}
@@ -200,8 +221,6 @@ export default function TaskForm({ groupId }: Props) {
                             </div>
                         </div>
                     )}
-
-                    {/* ASSIGNEES */}
                     <div className="border-b" />
 
                     <div className="flex items-center gap-1">

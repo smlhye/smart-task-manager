@@ -1,6 +1,6 @@
 import { parseApiResponse } from "@/app/lib/api-parser";
 import http from "@/app/services/http"
-import { FilterGroup, filterGroupSchema, groupCreatedSchema, GroupCreateType, groupDetailsSchema, groupSchema, groupsResponseSchema, GroupUpdateType, InviteNotificationType, searchMemberByEmailResultSchema, SearchMemberByEmailType } from "../schemas/group.schema";
+import { ChangeRoleType, FilterGroup, filterGroupSchema, groupCreatedSchema, GroupCreateType, groupDetailsSchema, groupSchema, groupsResponseSchema, GroupUpdateType, InviteNotificationType, rolesSchema, searchMemberByEmailResultSchema, SearchMemberByEmailType } from "../schemas/group.schema";
 import { createApiResponseSchema } from "@/app/lib/api-schema";
 import { ErrorCode } from "@/app/shared/contants/error-code";
 import { notificationSchema } from "../../notification/schemas/notification.schema";
@@ -156,4 +156,34 @@ export const groupService = {
             throw new Error("Không thể kết nối server");
         }
     },
+
+    changeRole: async (groupId: number, data: ChangeRoleType) => {
+        try {
+            const res = await http.patch(`groups/${groupId}/roles`, data);
+            return parseApiResponse(createApiResponseSchema(), res.data);
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                if (data.error?.code === ErrorCode.GROUP_NOT_FOUND) {
+                    throw new Error('Nhóm này không tồn tại. Vui lòng chọn nhóm khác hoặc tạo nhóm mới');
+                }
+                if (data.error?.code === ErrorCode.PERMISSION_DENIED) {
+                    throw new Error('Bạn không đủ quyền, vui lòng liên hệ admin nhóm');
+                }
+                throw new Error("Không thể kết nối server");
+            }
+        }
+    },
+
+    getRolesApi: async () => {
+        try {
+            const res = await http.get(`groups/roles`);
+            return parseApiResponse(createApiResponseSchema(rolesSchema), res.data);
+        } catch (err: any) {
+            if (err.response?.data) {
+                const data = parseApiResponse(createApiResponseSchema(), err.response.data);
+                throw new Error("Không thể kết nối server");
+            }
+        }
+    }
 }
