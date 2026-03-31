@@ -242,3 +242,33 @@ project/
 - Sử dụng Prisma CLI để quản lý schema và migration database
 
 ---
+
+## 7. Screenshots
+
+## LOGIN
+
+<p align="center">
+  <img src="./frontend/public/images/Screenshots/login.jpg" width="800"/>
+</p>
+
+## Task
+
+<p align="center">
+  <img src="./frontend/public/images/Screenshots/invite_member.jpg" width="45%"/>
+  <img src="./frontend/public/images/Screenshots/change_role.jpg" width="45%"/>
+</p>
+
+<p align="center">
+  <img src="./frontend/public/images/Screenshots/create_task.jpg" width="45%"/>
+  <img src="./frontend/public/images/Screenshots/notification.jpg" width="45%"/>
+</p>
+
+<p align="center">
+  <img src="./frontend/public/images/Screenshots/task_screen.jpg" width="45%"/>
+  <img src="./frontend/public/images/Screenshots/my_task_screen.jpg" width="45%"/>
+</p>
+
+## Settings
+<p align="center">
+  <img src="./frontend/public/images/Screenshots/settings.jpg" width="800"/>
+</p>
